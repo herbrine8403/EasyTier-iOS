@@ -1,24 +1,32 @@
-//
-//  ContentView.swift
-//  EasyTier
-//
-//  Created by Chenx Dust on 2025/12/30.
-//
-
 import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        NavigationStack {
+            TabView {
+                DashboardView()
+                    .tabItem {
+                        Image(systemName: "list.bullet.below.rectangle")
+                        Text("Dashboard")
+                    }
+                Text("Not Implemented")
+                    .tabItem {
+                        Image(systemName: "rectangle.and.text.magnifyingglass")
+                        Text("Logs")
+                    }
+                Text("Not Implemented")
+                    .tabItem {
+                        Image(systemName: "gearshape")
+                            .environment(\.symbolVariants, .none)
+                        Text("Settings")
+                    }
+            }
         }
-        .padding()
     }
 }
 
-#Preview {
-    ContentView()
+struct MainView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+    }
 }
