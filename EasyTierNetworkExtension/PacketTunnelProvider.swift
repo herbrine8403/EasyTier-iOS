@@ -37,7 +37,32 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         return nil
     }
     
-    func extractRustString(_ strPtr: UnsafePointer<CUnsignedChar>?) -> String? {
+    func initRustLogger() {
+        let appGroupID = "group.site.yinmo.easytier"
+        let filename = "easytier.log"
+        let level = "info"
+        
+        guard var containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupID) else {
+            logger.error("initRustLogger() failed: App Group container not found")
+            return
+        }
+        containerURL.append(component: filename)
+        let path = containerURL.path(percentEncoded: false)
+        logger.warning("initRustLogger() write to: \(path)")
+        
+        var errPtr: UnsafePointer<CChar>? = nil
+        let ret = path.withCString { pathPtr in
+            level.withCString { levelPtr in
+                return init_logger(pathPtr, levelPtr, &errPtr)
+            }
+        }
+        if ret != 0 {
+            let err = extractRustString(errPtr)
+            logger.error("initRustLogger() failed to init: \(err ?? "Unknown", privacy: .public)")
+        }
+    }
+    
+    func extractRustString(_ strPtr: UnsafePointer<CChar>?) -> String? {
         guard let strPtr else {
             logger.error("extractRustString(): nullptr")
             return nil
@@ -90,8 +115,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     }
 
     override func startTunnel(options: [String : NSObject]?, completionHandler: @escaping (Error?) -> Void) {
-        logger.info("startTunnel(): triggered")
-        var errPtr: UnsafePointer<CUnsignedChar>? = nil
+        logger.warning("startTunnel(): triggered")
         guard let options else {
             logger.error("startTunnel() options is nil")
             completionHandler("options is nil")
@@ -103,13 +127,16 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             completionHandler("config is empty")
             return
         }
+        initRustLogger()
+        var errPtr: UnsafePointer<CChar>? = nil
         let ret = config.withCString { strPtr in
             return run_network_instance(strPtr, &errPtr)
         }
-        if ret != 0 {
+        guard ret == 0 else {
             let err = extractRustString(errPtr)
             logger.error("startTunnel() failed to run: \(err ?? "Unknown", privacy: .public)")
             completionHandler(err)
+            return
         }
 
         self.setTunnelNetworkSettings(prepareSettings(options)) { [weak self] error in
@@ -125,12 +152,13 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 return
             }
             DispatchQueue.global(qos: .default).async {
-                var errPtr: UnsafePointer<CUnsignedChar>? = nil
+                var errPtr: UnsafePointer<CChar>? = nil
                 let ret = set_tun_fd(tunFd, &errPtr)
-                if ret != 0 {
+                guard ret == 0 else {
                     let err = self?.extractRustString(errPtr)
                     self?.logger.error("startTunnel() failed to set tun fd to \(tunFd): \(err, privacy: .public)")
                     completionHandler(err)
+                    return
                 }
             }
             completionHandler(nil)
@@ -150,8 +178,8 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         logger.info("handleAppMessage(): triggered")
         // Add code here to handle the message.
         guard let completionHandler else { return }
-        var infoPtr: UnsafePointer<CUnsignedChar>? = nil
-        var errPtr: UnsafePointer<CUnsignedChar>? = nil
+        var infoPtr: UnsafePointer<CChar>? = nil
+        var errPtr: UnsafePointer<CChar>? = nil
         if get_running_info(&infoPtr, &errPtr) == 0, let info = extractRustString(infoPtr) {
             completionHandler(info.data(using: .utf8))
             return

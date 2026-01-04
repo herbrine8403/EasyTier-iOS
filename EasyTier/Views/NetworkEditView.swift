@@ -59,12 +59,12 @@ struct NetworkEditView: View {
                     "Networking Method",
                     selection: $profile.networkingMethod
                 ) {
-                    ForEach(NetworkingMethod.allCases) {
+                    ForEach(NetworkProfile.NetworkingMethod.allCases) {
                         method in
-                        Text(verbatim: "\(method)".capitalized).tag(method)
+                        Text(method.description).tag(method)
                     }
                 }
-                .pickerStyle(.segmented)
+                .pickerStyle(.palette)
 
                 switch profile.networkingMethod {
                 case .publicServer:
@@ -279,7 +279,7 @@ struct NetworkEditView: View {
                 "Add Port Forward",
                 systemImage: "plus",
                 action: {
-                    profile.portForwards.append(PortForwardSetting())
+                    profile.portForwards.append(NetworkProfile.PortForwardSetting())
                 }
             )
             .frame(maxWidth: .infinity, alignment: .center)

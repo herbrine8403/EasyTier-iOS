@@ -1,7 +1,141 @@
 import Foundation
 import SwiftData
 
-struct Config: Codable {
+struct NetworkConfig: Codable {
+    struct Flags: Codable {
+        var defaultProtocol: String?
+        var devName: String?
+        var enableEncryption: Bool?
+        var enableIPv6: Bool?
+        var mtu: UInt32?
+        var latencyFirst: Bool?
+        var enableExitNode: Bool?
+        var noTUN: Bool?
+        var useSmoltcp: Bool?
+        var relayNetworkWhitelist: String?
+        var disableP2P: Bool?
+        var relayAllPeerRPC: Bool?
+        var disableUDPHolePunching: Bool?
+        var multiThread: Bool?
+        
+        // Invalid = 0, None = 1, Zstd = 2
+        var dataCompressAlgo: Int?
+        
+        var bindDevice: Bool?
+        var enableKCPProxy: Bool?
+        var disableKCPInput: Bool?
+        var disableRelayKCP: Bool?
+        var proxyForwardBySystem: Bool?
+        var acceptDNS: Bool?
+        var privateMode: Bool?
+        var enableQUICProxy: Bool?
+        var disableQUICInput: Bool?
+        var quicListenPort: UInt32?
+        var foreignRelayBpsLimit: UInt64?
+        var multiThreadCount: UInt32?
+        var enableRelayForeignNetworkKCP: Bool?
+        var encryptionAlgorithm: String?
+        var disableSymHolePunching: Bool?
+        var tldDNSZone: String?
+        var p2pOnly: Bool?
+        var disableTCPHolePunching: Bool?
+
+        enum CodingKeys: String, CodingKey {
+            case defaultProtocol = "default_protocol"
+            case devName = "dev_name"
+            case enableEncryption = "enable_encryption"
+            case enableIPv6 = "enable_ipv6"
+            case mtu
+            case latencyFirst = "latency_first"
+            case enableExitNode = "enable_exit_node"
+            case noTUN = "no_tun"
+            case useSmoltcp = "use_smoltcp"
+            case relayNetworkWhitelist = "relay_network_whitelist"
+            case disableP2P = "disable_p2p"
+            case relayAllPeerRPC = "relay_all_peer_rpc"
+            case disableUDPHolePunching = "disable_udp_hole_punching"
+            case multiThread = "multi_thread"
+            case dataCompressAlgo = "data_compress_algo"
+            case bindDevice = "bind_device"
+            case enableKCPProxy = "enable_kcp_proxy"
+            case disableKCPInput = "disable_kcp_input"
+            case disableRelayKCP = "disable_relay_kcp"
+            case proxyForwardBySystem = "proxy_forward_by_system"
+            case acceptDNS = "accept_dns"
+            case privateMode = "private_mode"
+            case enableQUICProxy = "enable_quic_proxy"
+            case disableQUICInput = "disable_quic_input"
+            case quicListenPort = "quic_listen_port"
+            case foreignRelayBpsLimit = "foreign_relay_bps_limit"
+            case multiThreadCount = "multi_thread_count"
+            case enableRelayForeignNetworkKCP = "enable_relay_foreign_network_kcp"
+            case encryptionAlgorithm = "encryption_algorithm"
+            case disableSymHolePunching = "disable_sym_hole_punching"
+            case tldDNSZone = "tld_dns_zone"
+            case p2pOnly = "p2p_only"
+            case disableTCPHolePunching = "disable_tcp_hole_punching"
+        }
+    }
+
+    struct NetworkIdentity: Codable {
+        var networkName: String
+        var networkSecret: String?
+        
+        enum CodingKeys: String, CodingKey {
+            case networkName = "network_name"
+            case networkSecret = "network_secret"
+        }
+    }
+
+    struct PeerConfig: Codable {
+        var uri: String
+    }
+
+    struct ProxyNetworkConfig: Codable {
+        /// Mapped from Rust `cidr::Ipv4Cidr`
+        var cidr: String
+        
+        /// Mapped from Rust `Option<cidr::Ipv4Cidr>`
+        var mappedCIDR: String?
+        
+        var allow: [String]?
+        
+        enum CodingKeys: String, CodingKey {
+            case cidr
+            case mappedCIDR = "mapped_cidr"
+            case allow
+        }
+    }
+
+    struct VPNPortalConfig: Codable {
+        /// Mapped from Rust `cidr::Ipv4Cidr`
+        var clientCIDR: String
+        
+        /// Mapped from Rust `SocketAddr`
+        var wireguardListen: String
+        
+        enum CodingKeys: String, CodingKey {
+            case clientCIDR = "client_cidr"
+            case wireguardListen = "wireguard_listen"
+        }
+    }
+
+    struct PortForwardConfig: Codable {
+        /// Mapped from Rust `SocketAddr`
+        var bindAddr: String
+        
+        /// Mapped from Rust `SocketAddr`
+        var dstAddr: String
+        
+        var proto: String
+        
+        enum CodingKeys: String, CodingKey {
+            case bindAddr = "bind_addr"
+            case dstAddr = "dst_addr"
+            case proto
+        }
+    }
+
     var netns: String?
     var hostname: String?
     var instanceName: String
@@ -168,139 +302,5 @@ struct Config: Codable {
         }
         
         self.flags = tempFlags
-    }
-}
-
-struct Flags: Codable {
-    var defaultProtocol: String?
-    var devName: String?
-    var enableEncryption: Bool?
-    var enableIPv6: Bool?
-    var mtu: UInt32?
-    var latencyFirst: Bool?
-    var enableExitNode: Bool?
-    var noTUN: Bool?
-    var useSmoltcp: Bool?
-    var relayNetworkWhitelist: String?
-    var disableP2P: Bool?
-    var relayAllPeerRPC: Bool?
-    var disableUDPHolePunching: Bool?
-    var multiThread: Bool?
-    
-    // Invalid = 0, None = 1, Zstd = 2
-    var dataCompressAlgo: Int?
-    
-    var bindDevice: Bool?
-    var enableKCPProxy: Bool?
-    var disableKCPInput: Bool?
-    var disableRelayKCP: Bool?
-    var proxyForwardBySystem: Bool?
-    var acceptDNS: Bool?
-    var privateMode: Bool?
-    var enableQUICProxy: Bool?
-    var disableQUICInput: Bool?
-    var quicListenPort: UInt32?
-    var foreignRelayBpsLimit: UInt64?
-    var multiThreadCount: UInt32?
-    var enableRelayForeignNetworkKCP: Bool?
-    var encryptionAlgorithm: String?
-    var disableSymHolePunching: Bool?
-    var tldDNSZone: String?
-    var p2pOnly: Bool?
-    var disableTCPHolePunching: Bool?
-
-    enum CodingKeys: String, CodingKey {
-        case defaultProtocol = "default_protocol"
-        case devName = "dev_name"
-        case enableEncryption = "enable_encryption"
-        case enableIPv6 = "enable_ipv6"
-        case mtu
-        case latencyFirst = "latency_first"
-        case enableExitNode = "enable_exit_node"
-        case noTUN = "no_tun"
-        case useSmoltcp = "use_smoltcp"
-        case relayNetworkWhitelist = "relay_network_whitelist"
-        case disableP2P = "disable_p2p"
-        case relayAllPeerRPC = "relay_all_peer_rpc"
-        case disableUDPHolePunching = "disable_udp_hole_punching"
-        case multiThread = "multi_thread"
-        case dataCompressAlgo = "data_compress_algo"
-        case bindDevice = "bind_device"
-        case enableKCPProxy = "enable_kcp_proxy"
-        case disableKCPInput = "disable_kcp_input"
-        case disableRelayKCP = "disable_relay_kcp"
-        case proxyForwardBySystem = "proxy_forward_by_system"
-        case acceptDNS = "accept_dns"
-        case privateMode = "private_mode"
-        case enableQUICProxy = "enable_quic_proxy"
-        case disableQUICInput = "disable_quic_input"
-        case quicListenPort = "quic_listen_port"
-        case foreignRelayBpsLimit = "foreign_relay_bps_limit"
-        case multiThreadCount = "multi_thread_count"
-        case enableRelayForeignNetworkKCP = "enable_relay_foreign_network_kcp"
-        case encryptionAlgorithm = "encryption_algorithm"
-        case disableSymHolePunching = "disable_sym_hole_punching"
-        case tldDNSZone = "tld_dns_zone"
-        case p2pOnly = "p2p_only"
-        case disableTCPHolePunching = "disable_tcp_hole_punching"
-    }
-}
-
-struct NetworkIdentity: Codable {
-    var networkName: String
-    var networkSecret: String?
-    
-    enum CodingKeys: String, CodingKey {
-        case networkName = "network_name"
-        case networkSecret = "network_secret"
-    }
-}
-
-struct PeerConfig: Codable {
-    var uri: String
-}
-
-struct ProxyNetworkConfig: Codable {
-    /// Mapped from Rust `cidr::Ipv4Cidr`
-    var cidr: String
-    
-    /// Mapped from Rust `Option<cidr::Ipv4Cidr>`
-    var mappedCIDR: String?
-    
-    var allow: [String]?
-    
-    enum CodingKeys: String, CodingKey {
-        case cidr
-        case mappedCIDR = "mapped_cidr"
-        case allow
-    }
-}
-
-struct VPNPortalConfig: Codable {
-    /// Mapped from Rust `cidr::Ipv4Cidr`
-    var clientCIDR: String
-    
-    /// Mapped from Rust `SocketAddr`
-    var wireguardListen: String
-    
-    enum CodingKeys: String, CodingKey {
-        case clientCIDR = "client_cidr"
-        case wireguardListen = "wireguard_listen"
-    }
-}
-
-struct PortForwardConfig: Codable {
-    /// Mapped from Rust `SocketAddr`
-    var bindAddr: String
-    
-    /// Mapped from Rust `SocketAddr`
-    var dstAddr: String
-    
-    var proto: String
-    
-    enum CodingKeys: String, CodingKey {
-        case bindAddr = "bind_addr"
-        case dstAddr = "dst_addr"
-        case proto
     }
 }

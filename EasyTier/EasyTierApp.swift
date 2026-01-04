@@ -7,7 +7,7 @@ struct EasyTierApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView<NEManager>()
         }
         .modelContainer(for: [ProfileSummary.self, NetworkProfile.self])
         .environmentObject(manager)

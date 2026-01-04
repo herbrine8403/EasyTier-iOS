@@ -1,46 +1,6 @@
 import Foundation
 import SwiftData
 
-enum NetworkingMethod: Int, Codable, CaseIterable, Identifiable {
-    var id: Self { self }
-    case publicServer = 0
-    case manual = 1
-    case standalone = 2
-}
-
-struct PortForwardSetting: Codable, Hashable, Identifiable {
-    var id = UUID()
-    var bindIP: String = ""
-    var bindPort: Int = 0
-    var dstIP: String = ""
-    var dstPort: Int = 0
-    var proto: String = "tcp"
-    
-    private enum CodingKeys: String, CodingKey {
-        case bindIP, bindPort, dstIP, dstPort, proto
-    }
-}
-
-nonisolated
-struct CIDR: Codable, Hashable {
-    var ip: String
-    var length: Int
-    
-    var cidrString: String {
-        "\(ip)/\(length)"
-    }
-    
-    private enum CodingKeys: String, CodingKey {
-        case ip, length
-    }
-}
-
-struct ProxyCIDR: Codable, Hashable {
-    var from: String
-    var to: String
-    var length: Int
-}
-
 @Model
 final class ProfileSummary {
     @Attribute(.unique) var id: UUID
@@ -62,6 +22,54 @@ final class ProfileSummary {
 
 @Model
 final class NetworkProfile {
+    enum NetworkingMethod: Int, Codable, CaseIterable, Identifiable, CustomStringConvertible {
+        var id: Self { self }
+        case publicServer = 0
+        case manual = 1
+        case standalone = 2
+        
+        var description: String {
+            switch self {
+            case .publicServer: return "Public Server"
+            case .manual: return "Manual"
+            case .standalone: return "Standalone"
+            }
+        }
+    }
+
+    struct PortForwardSetting: Codable, Hashable, Identifiable {
+        var id = UUID()
+        var bindIP: String = ""
+        var bindPort: Int = 0
+        var dstIP: String = ""
+        var dstPort: Int = 0
+        var proto: String = "tcp"
+        
+        private enum CodingKeys: String, CodingKey {
+            case bindIP, bindPort, dstIP, dstPort, proto
+        }
+    }
+
+    nonisolated
+    struct CIDR: Codable, Hashable {
+        var ip: String
+        var length: Int
+        
+        var cidrString: String {
+            "\(ip)/\(length)"
+        }
+        
+        private enum CodingKeys: String, CodingKey {
+            case ip, length
+        }
+    }
+
+    struct ProxyCIDR: Codable, Hashable {
+        var from: String
+        var to: String
+        var length: Int
+    }
+    
     @Attribute(.unique) var id: UUID
 
     var dhcp: Bool = true

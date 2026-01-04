@@ -2,11 +2,11 @@ import SwiftData
 import SwiftUI
 import NetworkExtension
 
-struct DashboardView: View {
+struct DashboardView<Manager: NEManagerProtocol>: View {
     @Environment(\.modelContext) var context
     @Query(sort: \ProfileSummary.createdAt) var networks: [ProfileSummary]
     
-    @EnvironmentObject var manager: NEManager
+    @EnvironmentObject var manager: Manager
 
     @AppStorage("lastSelected") var lastSelected: String?
     @State var selectedProfile: ProfileSummary?
@@ -26,7 +26,7 @@ struct DashboardView: View {
             if let profile = Binding($selectedProfile) {
                 ZStack {
                     if isConnected {
-                        StatusView()
+                        StatusView<Manager>()
                     } else {
                         NetworkEditView(profile: profile.profile)
                             .disabled(isPending)
@@ -57,7 +57,7 @@ struct DashboardView: View {
             lastSelected = selectedProfile?.id.uuidString
             guard let selectedProfile else { return }
             Task {
-                try? await manager.updateName(name: selectedProfile.name, server: selectedProfile.id.uuidString)
+                await manager.updateName(name: selectedProfile.name, server: selectedProfile.id.uuidString)
             }
         }
     }
@@ -214,8 +214,8 @@ struct DashboardView: View {
 
 struct DashboardView_Previews: PreviewProvider {
     static var previews: some View {
-        @StateObject var manager = NEManager()
-        DashboardView()
+        @StateObject var manager = MockNEManager()
+        DashboardView<MockNEManager>()
             .modelContainer(
                 try! ModelContainer(
                     for: Schema([ProfileSummary.self, NetworkProfile.self]),
