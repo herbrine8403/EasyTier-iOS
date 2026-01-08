@@ -1,7 +1,9 @@
 import SwiftData
 import SwiftUI
 import NetworkExtension
+import os
 
+private let DashboardLogger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "App", category: "Dashboard")
 
 struct DashboardView<Manager: NEManagerProtocol>: View {
     @Environment(\.modelContext) var context
@@ -24,7 +26,7 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
     
     @State var errorMessage: TextItem?
 
-    @State private var darwinObserver: DarwinNotificationObserver? = nil
+    @State private var darwinObserver: DNObserver? = nil
     
     var selectedProfile: ProfileSummary? {
         guard let selectedProfileId else { return nil }
@@ -197,6 +199,7 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
                                 do {
                                     try await manager.connect(profile: selectedProfile.profile)
                                 } catch {
+                                    DashboardLogger.error("connect failed: \(error)")
                                     errorMessage = .init(error.localizedDescription)
                                 }
                             }
@@ -227,11 +230,12 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
                 try? await manager.load()
             }
             // Register Darwin notification observer for tunnel errors
-            darwinObserver = DarwinNotificationObserver(name: "site.yinmo.easytier.tunnel.error") {
+            darwinObserver = DNObserver(name: "site.yinmo.easytier.tunnel.error") {
                 // Read the latest error from shared App Group defaults
                 let defaults = UserDefaults(suiteName: "group.site.yinmo.easytier")
                 if let msg = defaults?.string(forKey: "TunnelLastError") {
                     DispatchQueue.main.async {
+                        DashboardLogger.error("core stopped: \(msg)")
                         self.errorMessage = .init(msg)
                     }
                 }
@@ -252,7 +256,8 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
             sheetView
         }
         .alert(item: $errorMessage) { msg in
-            Alert(title: Text("Error"), message: Text(msg.text))
+            DashboardLogger.error("received error: \(String(describing: msg))")
+            return Alert(title: Text("Error"), message: Text(msg.text))
         }
     }
 }
@@ -272,3 +277,4 @@ struct DashboardView_Previews: PreviewProvider {
         .environmentObject(manager)
     }
 }
+

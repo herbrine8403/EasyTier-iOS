@@ -1,6 +1,7 @@
 import Foundation
 
-final class DarwinNotificationObserver {
+// DN: Darwin Notification
+final class DNObserver {
     private let name: String
     private let callback: () -> Void
     
@@ -22,7 +23,7 @@ final class DarwinNotificationObserver {
             { (_, observer, _, _, _) in
                 guard let observer = observer else { return }
                 
-                let instance = Unmanaged<DarwinNotificationObserver>.fromOpaque(observer).takeUnretainedValue()
+                let instance = Unmanaged<DNObserver>.fromOpaque(observer).takeUnretainedValue()
                 
                 DispatchQueue.main.async {
                     instance.callback()

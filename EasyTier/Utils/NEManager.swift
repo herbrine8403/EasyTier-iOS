@@ -3,6 +3,7 @@ import Combine
 import NetworkExtension
 
 import TOMLKit
+import os
 
 protocol NEManagerProtocol: ObservableObject {
     var status: NEVPNStatus { get }
@@ -18,6 +19,8 @@ protocol NEManagerProtocol: ObservableObject {
 }
 
 class NEManager: NEManagerProtocol {
+    private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "App", category: "NEManager")
+
     private var manager: NETunnelProviderManager?
     private var connection: NEVPNConnection?
     private var observer: Any?
@@ -74,7 +77,7 @@ class NEManager: NEManagerProtocol {
     }
     
     static func install() async throws -> NETunnelProviderManager {
-        print("[NEManager] install()")
+        Self.logger.info("install()")
         let manager = NETunnelProviderManager()
         manager.localizedDescription = "EasyTier"
         let tunnelProtocol = NETunnelProviderProtocol()
@@ -86,26 +89,26 @@ class NEManager: NEManagerProtocol {
             try await manager.saveToPreferences()
             return manager
         } catch {
-            print("[NEManager] install() failed: \(error)")
+            Self.logger.error("install() failed: \(String(describing: error))")
             throw error
         }
     }
 
     func load() async throws {
-        print("[NEManager] load()")
+        Self.logger.info("load()")
         do {
             let managers = try await NETunnelProviderManager.loadAllFromPreferences()
             let manager = managers.first
             for m in managers {
                 if m != manager {
                     try? await m.removeFromPreferences()
-                    print("[NEManager] load() removed unecessary profile")
+                    Self.logger.info("load() removed unnecessary profile")
                 }
             }
             setManager(manager: manager)
             isLoading = false
         } catch {
-            print("[NEManager] load() failed: \(error)")
+            Self.logger.error("load() failed: \(String(describing: error))")
             reset()
             throw error
         }
@@ -113,11 +116,11 @@ class NEManager: NEManagerProtocol {
     
     func connect(profile: NetworkProfile) async throws {
         guard ![.connecting, .connected, .disconnecting, .reasserting].contains(status) else {
-            print("[NEManager] connect() failed: in \(status) status")
+            Self.logger.warning("connect() failed: in \(String(describing: self.status)) status")
             return
         }
         guard !isLoading else {
-            print("[NEManager] connect() failed: not loaded")
+            Self.logger.warning("connect() failed: not loaded")
             return
         }
         if status == .invalid {
@@ -125,7 +128,7 @@ class NEManager: NEManagerProtocol {
             try await load()
         }
         guard let manager else {
-            print("[NEManager] connect() failed: manager is nil")
+            Self.logger.error("connect() failed: manager is nil")
             return
         }
         manager.isEnabled = true
@@ -148,23 +151,23 @@ class NEManager: NEManagerProtocol {
         do {
             encoded = try TOMLEncoder().encode(config).string ?? ""
         } catch {
-            print("[NEManager] connect() generate config failed: \(error)")
+            Self.logger.error("connect() generate config failed: \(String(describing: error))")
             throw error
         }
-//        print("[NEManager] connect() config: \(encoded)")
+        Self.logger.debug("connect() config: \(encoded)")
         options["config"] = encoded as NSString
         do {
             try manager.connection.startVPNTunnel(options: options)
         } catch {
-            print("[NEManager] connect() start vpn tunnel failed: \(error)")
+            Self.logger.error("connect() start vpn tunnel failed: \(String(describing: error))")
             throw error
         }
-        print("[NEManager] connect() started")
+        Self.logger.info("connect() started")
     }
     
     func disconnect() async {
         guard let manager else {
-            print("[NEManager] disconnect() failed: manager is nil")
+            Self.logger.error("disconnect() failed: manager is nil")
             return
         }
         manager.connection.stopVPNTunnel()
@@ -184,18 +187,18 @@ class NEManager: NEManagerProtocol {
         do {
             try session.sendProviderMessage(Data()) { data in
                 guard let data else { return }
-//                print("[NEManager] fetchRunningInfo() received data: \(String(data: data, encoding: .utf8) ?? data.description)")
+                Self.logger.debug("fetchRunningInfo() received data: \(String(data: data, encoding: .utf8) ?? data.description)")
                 let info: NetworkStatus
                 do {
                     info = try JSONDecoder().decode(NetworkStatus.self, from: data)
                 } catch {
-                    print("[NEManager] fetchRunningInfo() json deserialize failed: \(error)")
+                    Self.logger.error("fetchRunningInfo() json deserialize failed: \(String(describing: error))")
                     return
                 }
                 callback(info)
             }
         } catch {
-            print("[NEManager] fetchRunningInfo() failed: \(error)")
+            Self.logger.error("fetchRunningInfo() failed: \(String(describing: error))")
         }
     }
 }
@@ -238,12 +241,12 @@ class MockNEManager: NEManagerProtocol {
         let id = UUID().uuidString
 
         let myNodeInfo = NetworkStatus.NodeInfo(
-            virtualIPv4: NetworkStatus.IPv4CIDR(address: NetworkStatus.IPv4Addr.fromString("10.144.144.10")!, networkLength: 24),
+            virtualIPv4: NetworkStatus.IPv4CIDR(address: NetworkStatus.IPv4Addr("10.144.144.10")!, networkLength: 24),
             hostname: "my-macbook-pro",
             version: "0.10.1",
             ips: .init(
-                publicIPv4: NetworkStatus.IPv4Addr.fromString("8.8.8.8"),
-                interfaceIPv4s: [NetworkStatus.IPv4Addr.fromString("192.168.1.100")!],
+                publicIPv4: NetworkStatus.IPv4Addr("8.8.8.8"),
+                interfaceIPv4s: [NetworkStatus.IPv4Addr("192.168.1.100")!],
                 publicIPv6: nil as NetworkStatus.IPv6Addr?,
                 interfaceIPv6s: []
             ),
@@ -252,9 +255,9 @@ class MockNEManager: NEManagerProtocol {
             vpnPortalCfg: "[Interface]\nPrivateKey = [REDACTED]\nAddress = 10.144.144.1/24\nListenPort = 22022\n\n[Peer]\nPublicKey = [REDACTED]\nAllowedIPs = 10.144.144.2/32"
         )
         
-        let peerRoute1 = NetworkStatus.Route(peerId: 123, ipv4Addr: .init(address: .fromString("10.144.144.10")!, networkLength: 24), nextHopPeerId: 123, cost: 1, proxyCIDRs: [], hostname: "peer-1-ubuntu", stunInfo: NetworkStatus.STUNInfo(udpNATType: .fullCone, tcpNATType: .symmetric, lastUpdateTime: Date().timeIntervalSince1970 - 20), instId: id, version: "0.10.0")
-        let peerRoute2 = NetworkStatus.Route(peerId: 456, ipv4Addr: .init(address: .fromString("10.144.144.12")!, networkLength: 32), nextHopPeerId: 789, cost: 2, proxyCIDRs: [], hostname: "peer-2-relayed-windows", stunInfo: NetworkStatus.STUNInfo(udpNATType: .symmetric, tcpNATType: .restricted, lastUpdateTime: Date().timeIntervalSince1970 - 30), instId: id, version: "0.9.8")
-        let peerRoute3 = NetworkStatus.Route(peerId: 256, ipv4Addr: .init(address: .fromString("10.144.144.14")!, networkLength: 32), nextHopPeerId: 789, cost: 1, proxyCIDRs: [], hostname: "peer-3-relayed-verylong-verylong-verylong-verylong", stunInfo: NetworkStatus.STUNInfo(udpNATType: .openInternet, tcpNATType: .openInternet, lastUpdateTime: Date().timeIntervalSince1970 - 20), instId: id, version: "1.9.8")
+        let peerRoute1 = NetworkStatus.Route(peerId: 123, ipv4Addr: .init(address: .init("10.144.144.10")!, networkLength: 24), nextHopPeerId: 123, cost: 1, pathLatency: 8, proxyCIDRs: [], hostname: "peer-1-ubuntu", stunInfo: NetworkStatus.STUNInfo(udpNATType: .fullCone, tcpNATType: .symmetric, lastUpdateTime: Date().timeIntervalSince1970 - 20), instId: id, version: "0.10.0")
+        let peerRoute2 = NetworkStatus.Route(peerId: 456, ipv6Addr: .init(address: .init("fd00::1")!, networkLength: 64), nextHopPeerId: 789, cost: 2, pathLatency: 8, proxyCIDRs: [], hostname: "peer-2-relayed-windows", stunInfo: NetworkStatus.STUNInfo(udpNATType: .symmetric, tcpNATType: .restricted, lastUpdateTime: Date().timeIntervalSince1970 - 30), instId: id, version: "0.9.8")
+        let peerRoute3 = NetworkStatus.Route(peerId: 256, ipv4Addr: .init(address: .init("10.144.144.14")!, networkLength: 32), ipv6Addr: .init(address: .init("fd00::2")!, networkLength: 48), nextHopPeerId: 789, cost: 1, pathLatency: 8, proxyCIDRs: [], hostname: "peer-3-relayed-verylong-verylong-verylong-verylong", stunInfo: NetworkStatus.STUNInfo(udpNATType: .openInternet, tcpNATType: .openInternet, lastUpdateTime: Date().timeIntervalSince1970 - 20), instId: id, version: "1.9.8")
         
         let conn1 = NetworkStatus.PeerConnInfo(connId: "conn-1", myPeerId: 0, isClient: true, peerId: 123, features: [], tunnel: NetworkStatus.TunnelInfo(tunnelType: "tcp", localAddr: NetworkStatus.Url(url:"192.168.1.100:55555"), remoteAddr: NetworkStatus.Url(url:"1.2.3.4:11010")), stats: NetworkStatus.PeerConnStats(rxBytes: 102400, txBytes: 204800, rxPackets: 100, txPackets: 200, latencyUs: 80000), lossRate: 0.01)
         let conn2 = NetworkStatus.PeerConnInfo(connId: "conn-2", myPeerId: 0, isClient: true, peerId: 256, features: [], tunnel: NetworkStatus.TunnelInfo(tunnelType: "udp", localAddr: NetworkStatus.Url(url:"192.168.1.100:55555"), remoteAddr: NetworkStatus.Url(url:"1.2.3.4:11010")), stats: NetworkStatus.PeerConnStats(rxBytes: 102400, txBytes: 204800, rxPackets: 100, txPackets: 200, latencyUs: 5000), lossRate: 0.01)
@@ -290,3 +293,4 @@ class MockNEManager: NEManagerProtocol {
         )
     }
 }
+

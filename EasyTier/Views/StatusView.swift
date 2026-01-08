@@ -1,4 +1,5 @@
 import Combine
+import Foundation
 import SwiftUI
 
 struct StatusView<Manager: NEManagerProtocol>: View {
@@ -6,6 +7,7 @@ struct StatusView<Manager: NEManagerProtocol>: View {
     @State var timerSubscription: AnyCancellable?
     @State var status: NetworkStatus?
     @State var selectedInfoKind: InfoKind = .peerInfo
+    @State var selectedPeerRoutePair: NetworkStatus.PeerRoutePair?
     
     var name: String
     
@@ -90,7 +92,12 @@ struct StatusView<Manager: NEManagerProtocol>: View {
                 switch (selectedInfoKind) {
                 case .peerInfo:
                     ForEach(status?.peerRoutePairs ?? []) { pair in
-                        PeerRowView(pair: pair)
+                        Button {
+                            selectedPeerRoutePair = pair
+                        } label: {
+                            PeerRowView(pair: pair)
+                        }
+                        .buttonStyle(.plain)
                     }
                 case .eventLog:
                     TimelineLogPanel(events: status?.events ?? [])
@@ -110,11 +117,18 @@ struct StatusView<Manager: NEManagerProtocol>: View {
             }
             timerSubscription = nil
         }
+        .sheet(item: $selectedPeerRoutePair) { pair in
+            PeerConnDetailSheet(pair: pair)
+        }
     }
 }
 
 struct PeerRowView: View {
     let pair: NetworkStatus.PeerRoutePair
+    
+    var isPublicServer: Bool {
+        pair.route.featureFlag?.isPublicServer ?? false
+    }
 
     var latency: Double? {
         let latencies = pair.peer?.conns.compactMap {
@@ -133,15 +147,15 @@ struct PeerRowView: View {
     }
 
     var body: some View {
-        HStack(alignment: .center, spacing: 16) {
+        HStack(alignment: .center) {
             // Icon
             ZStack {
                 Circle()
-                    .fill(Color.blue.opacity(0.1))
+                    .fill((isPublicServer ? Color.pink : Color.blue).opacity(0.1))
                     .frame(width: 44, height: 44)
-                Image(systemName: "server.rack")
-                    .foregroundStyle(.blue)
-            }
+                Image(systemName: isPublicServer ? "server.rack" : "rectangle.connected.to.line.below")
+                    .foregroundStyle(isPublicServer ? .pink : .blue)
+            }.padding(.trailing, 8)
 
             // Info
             VStack(alignment: .leading, spacing: 4) {
@@ -151,21 +165,34 @@ struct PeerRowView: View {
                     .lineLimit(1)
                 
                 VStack(alignment: .leading, spacing: 4) {
-                    {
-                        var infoLine1: [String] = []
-                        infoLine1.append("ID: \(String(pair.route.peerId))")
-                        infoLine1.append(pair.route.cost == 1 ? "P2P" : "Relay \(pair.route.cost)")
+                    if let text = ({
+                        var infoLine: [String] = []
+                        infoLine.append("ID: \(String(pair.route.peerId))")
+                        infoLine.append(pair.route.cost == 1 ? "P2P" : "Relay \(pair.route.cost)")
                         if let conns = pair.peer?.conns, !conns.isEmpty {
                             let types = conns.compactMap(\.tunnel?.tunnelType);
                             if !types.isEmpty {
-                                infoLine1.append(Array(Set(types)).sorted().joined(separator: "&").uppercased())
+                                infoLine.append(Array(Set(types)).sorted().joined(separator: "&").uppercased())
                             }
                         }
-                        return Text(infoLine1.joined(separator: " "))
-                    }()
+                        return infoLine.joined(separator: " ")
+                    })(), !text.isEmpty {
+                        Text(text)
+                    }
                     
-                    if let ip = pair.route.ipv4Addr {
-                        Text("IP: \(ip.description)")
+                    if let text = ({
+                        var infoLine: [String] = []
+                        if let ip = pair.route.ipv4Addr {
+                            infoLine.append("IP: \(ip.description)")
+                            if let _ = pair.route.ipv6Addr {
+                                infoLine.append("(+IPv6)")
+                            }
+                        } else if let ip = pair.route.ipv6Addr {
+                            infoLine.append("IP: \(ip.description)")
+                        }
+                        return infoLine.joined(separator: " ")
+                    })(), !text.isEmpty {
+                        Text(text)
                     }
                 }
                 .labelIconToTitleSpacing(0)
@@ -180,7 +207,7 @@ struct PeerRowView: View {
             VStack(alignment: .trailing, spacing: 4) {
                 if let latency {
                     HStack(spacing: 4) {
-                        Image(systemName: "bolt.horizontal.fill")
+                        Image(systemName: "bolt.fill")
                             .font(.caption2)
                         Text("\(String(format: "%.1f", latency / 1000.0)) ms")
                             .font(.callout)
@@ -205,8 +232,8 @@ struct PeerRowView: View {
 
     func latencyColor(_ us: Double) -> Color {
         switch us {
-        case 0..<60_000: return .green
-        case 60_000..<200_000: return .orange
+        case 0..<100_000: return .green
+        case 100_000..<200_000: return .orange
         default: return .red
         }
     }
@@ -447,5 +474,77 @@ struct StatusView_Previews: PreviewProvider {
         @StateObject var manager = MockNEManager()
         StatusView<MockNEManager>(name: "Example")
             .environmentObject(manager)
+    }
+}
+
+struct PeerConnDetailSheet: View {
+    let pair: NetworkStatus.PeerRoutePair
+
+    var conns: [NetworkStatus.PeerConnInfo] {
+        pair.peer?.conns ?? []
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Peer") {
+                    LabeledContent("Hostname", value: pair.route.hostname)
+                    LabeledContent("Peer ID", value: String(pair.route.peerId))
+                }
+
+                if conns.isEmpty {
+                    Section("Connections") {
+                        Text("No connection details available.")
+                            .foregroundStyle(.secondary)
+                    }
+                } else {
+                    ForEach(conns, id: \.connId) { conn in
+                        Section("Connection \(conn.connId)") {
+                            LabeledContent("Role", value: conn.isClient ? "Client" : "Server")
+                            LabeledContent("Loss Rate", value: percentString(conn.lossRate))
+                            LabeledContent("Network", value: conn.networkName ?? "N/A")
+                            LabeledContent("Closed", value: triState(conn.isClosed))
+
+                            LabeledContent("Features", value: conn.features.isEmpty ? "None" : conn.features.joined(separator: ", "))
+
+                            if let tunnel = conn.tunnel {
+                                LabeledContent("Tunnel Type", value: tunnel.tunnelType.uppercased())
+                                LabeledContent("Local", value: tunnel.localAddr.url)
+                                LabeledContent("Remote", value: tunnel.remoteAddr.url)
+                            }
+
+                            if let stats = conn.stats {
+                                LabeledContent("Rx Bytes", value: formatBytes(stats.rxBytes))
+                                LabeledContent("Tx Bytes", value: formatBytes(stats.txBytes))
+                                LabeledContent("Rx Packets", value: String(stats.rxPackets))
+                                LabeledContent("Tx Packets", value: String(stats.txPackets))
+                                LabeledContent("Latency", value: latencyString(stats.latencyUs))
+                            }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Peer Details")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+
+    private func formatBytes(_ value: Int) -> String {
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .binary
+        return formatter.string(fromByteCount: Int64(value))
+    }
+
+    private func latencyString(_ us: Int) -> String {
+        String(format: "%.1f ms", Double(us) / 1000.0)
+    }
+
+    private func percentString(_ value: Double) -> String {
+        String(format: "%.2f%%", value * 100)
+    }
+
+    private func triState(_ value: Bool?) -> String {
+        guard let value else { return "Unknown" }
+        return value ? "Yes" : "No"
     }
 }
