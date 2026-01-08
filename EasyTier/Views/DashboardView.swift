@@ -236,10 +236,6 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
                     }
                 }
             }
-            // Also fetch any existing error on appear
-            if let defaults = UserDefaults(suiteName: "group.site.yinmo.easytier"), let msg = defaults.string(forKey: "TunnelLastError") {
-                self.errorMessage = .init(msg)
-            }
         }
         .onChange(of: selectedProfile) {
             lastSelected = selectedProfile?.id.uuidString

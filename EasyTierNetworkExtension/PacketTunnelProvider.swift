@@ -82,18 +82,16 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         // Called from FFI callback on an arbitrary thread
         var msgPtr: UnsafePointer<CChar>? = nil
         var errPtr: UnsafePointer<CChar>? = nil
-        var message: String = "EasyTier stopped unexpectedly"
         let ret = get_latest_error_msg(&msgPtr, &errPtr)
         if ret == 0, let msg = extractRustString(msgPtr) {
-            message = msg
+            logger.error("handleRustStop(): \(msg, privacy: .public)")
+            // Inform host app and cancel the tunnel on main queue
+            DispatchQueue.main.async {
+                self.notifyHostAppError(msg)
+                self.cancelTunnelWithError(msg)
+            }
         } else if let err = extractRustString(errPtr) {
-            logger.error("handleRustStop() failed to get latest error: \(err)")
-        }
-        logger.error("handleRustStop(): \(message, privacy: .public)")
-        // Inform host app and cancel the tunnel on main queue
-        DispatchQueue.main.async {
-            self.notifyHostAppError(message)
-            self.cancelTunnelWithError(message)
+            logger.error("handleRustStop() failed to get latest error: \(err, privacy: .public)")
         }
     }
     

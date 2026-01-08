@@ -92,7 +92,7 @@ final class NetworkProfile {
     var dhcp: Bool = true
     var virtualIPv4: CIDR = CIDR(ip: "10.144.144.0", length: "24")
     var hostname: String? = nil
-    var networkName: String = "default"
+    var networkName: String = "easytier"
     var networkSecret: String = ""
 
     var networkingMethod: NetworkingMethod = NetworkingMethod.publicServer
@@ -117,11 +117,11 @@ final class NetworkProfile {
     var disableQUICInput: Bool = false
     var disableP2P: Bool = false
     var p2pOnly: Bool = false
-    var bindDevice: Bool = false
+    var bindDevice: Bool = true
     var noTUN: Bool = false
     var enableExitNode: Bool = false
     var relayAllPeerRPC: Bool = false
-    var multiThread: Bool = false
+    var multiThread: Bool = true
     var proxyForwardBySystem: Bool = false
     var disableEncryption: Bool = false
     var disableUDPHolePunching: Bool = false

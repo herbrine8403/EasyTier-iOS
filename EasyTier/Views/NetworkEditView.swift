@@ -212,7 +212,10 @@ struct NetworkEditView: View {
 
             Section("Feature") {
                 ForEach(NetworkProfile.boolFlags) { flag in
-                    Toggle(isOn: binding($profile, to: flag.keyPath)) {
+                    Toggle(isOn: Binding<Bool>(
+                        get: { $profile.wrappedValue[keyPath: flag.keyPath] },
+                        set: { $profile.wrappedValue[keyPath: flag.keyPath] = $0 }
+                    )) {
                         Text(flag.label)
                         if let help = flag.help {
                             Text(help)
@@ -362,16 +365,6 @@ extension Optional where Wrapped == Int {
         get { self ?? 0 }
         set { self = newValue }
     }
-}
-
-private func binding<Root, Value>(
-    _ root: Binding<Root>,
-    to keyPath: WritableKeyPath<Root, Value>
-) -> Binding<Value> {
-    Binding<Value>(
-        get: { root.wrappedValue[keyPath: keyPath] },
-        set: { root.wrappedValue[keyPath: keyPath] = $0 }
-    )
 }
 
 struct NetworkConfigurationView_Previews: PreviewProvider {
