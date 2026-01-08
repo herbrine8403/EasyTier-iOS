@@ -5,14 +5,13 @@ import SwiftUI
 struct StatusView<Manager: NEManagerProtocol>: View {
     @EnvironmentObject var manager: Manager
     @Environment(\.scenePhase) private var scenePhase
+    @AppStorage("statusRefreshInterval") private var statusRefreshInterval: Double = 1.0
     @State var timerSubscription: AnyCancellable?
     @State var status: NetworkStatus?
     @State var selectedInfoKind: InfoKind = .peerInfo
     @State var selectedPeerRoutePair: NetworkStatus.PeerRoutePair?
     @State var showNodeInfo = false
     @State var showStunInfo = false
-
-    let timer = Timer.publish(every: 1, on: .main, in: .common)
     
     enum InfoKind: Identifiable, CaseIterable, CustomStringConvertible {
         var id: Self { self }
@@ -134,6 +133,11 @@ struct StatusView<Manager: NEManagerProtocol>: View {
                 break
             }
         }
+        .onChange(of: statusRefreshInterval) { _, _ in
+            guard scenePhase == .active else { return }
+            stopTimer()
+            startTimer()
+        }
         .sheet(item: $selectedPeerRoutePair) { pair in
             PeerConnDetailSheet(pair: pair)
         }
@@ -153,7 +157,10 @@ struct StatusView<Manager: NEManagerProtocol>: View {
 
     private func startTimer() {
         guard timerSubscription == nil else { return }
-        timerSubscription = timer.autoconnect().sink { _ in
+        let interval = max(0.2, statusRefreshInterval)
+        timerSubscription = Timer.publish(every: interval, on: .main, in: .common)
+            .autoconnect()
+            .sink { _ in
             refreshStatus()
         }
     }

@@ -147,6 +147,9 @@ class NEManager: NEManagerProtocol {
         Self.logger.debug("connect() config: \(encoded)")
         options["config"] = encoded as NSString
         options["mtu"] = (config.flags?.mtu ?? 1300) as NSNumber
+        if let logLevel = UserDefaults.standard.string(forKey: "logLevel") {
+            options["logLevel"] = logLevel as NSString
+        }
         do {
             try manager.connection.startVPNTunnel(options: options)
         } catch {

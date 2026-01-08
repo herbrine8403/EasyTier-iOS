@@ -1,13 +1,23 @@
 import SwiftUI
+import UIKit
 
 let APP_GROUP_ID: String = "group.site.yinmo.easytier"
 let LOG_FILENAME: String = "easytier.log"
+
+private func logFileURL() -> URL? {
+    FileManager.default
+        .containerURL(forSecurityApplicationGroupIdentifier: APP_GROUP_ID)?
+        .appendingPathComponent(LOG_FILENAME)
+}
 
 struct LogView: View {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var tailer = LogTailer()
     @Namespace private var bottomID
     @State private var wasWatchingBeforeBackground = false
+    @State private var exportURL: URL?
+    @State private var isExportPresented = false
+    @State private var exportErrorMessage: TextItem?
     
     var body: some View {
         NavigationStack {
@@ -43,6 +53,13 @@ struct LogView: View {
                     }) {
                         Image(systemName: "trash")
                     }.tint(.red)
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(action: {
+                        presentExport()
+                    }) {
+                        Image(systemName: "square.and.arrow.up")
+                    }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: {
@@ -83,7 +100,42 @@ struct LogView: View {
         .alert(item: $tailer.errorMessage) { msg in
             Alert(title: Text("Error"), message: Text(msg.text))
         }
+        .alert(item: $exportErrorMessage) { msg in
+            Alert(title: Text("Error"), message: Text(msg.text))
+        }
+        .sheet(isPresented: $isExportPresented) {
+            if let url = exportURL {
+                ShareSheet(activityItems: [url])
+            }
+        }
     }
+
+    private func presentExport() {
+        guard let url = logFileURL() else {
+            exportErrorMessage = .init("Log file not found.")
+            return
+        }
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            exportErrorMessage = .init("Log file not found.")
+            return
+        }
+        exportURL = url
+        isExportPresented = true
+    }
+}
+
+struct ShareSheet: UIViewControllerRepresentable {
+    let activityItems: [Any]
+    var applicationActivities: [UIActivity]? = nil
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(
+            activityItems: activityItems,
+            applicationActivities: applicationActivities
+        )
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 struct LogView_Previews: PreviewProvider {

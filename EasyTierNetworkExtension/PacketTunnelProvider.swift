@@ -47,9 +47,10 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         return nil
     }
     
-    func initRustLogger() {
+    func initRustLogger(level: String?) {
         let filename = "easytier.log"
-        let level = "trace"
+        let allowedLevels = Set(["trace", "debug", "info", "warn", "error"])
+        let finalLevel = level.flatMap { allowedLevels.contains($0) ? $0 : nil } ?? "trace"
         
         guard var containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupID) else {
             logger.error("initRustLogger() failed: App Group container not found")
@@ -61,7 +62,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         
         var errPtr: UnsafePointer<CChar>? = nil
         let ret = path.withCString { pathPtr in
-            level.withCString { levelPtr in
+            finalLevel.withCString { levelPtr in
                 return init_logger(pathPtr, levelPtr, &errPtr)
             }
         }
@@ -214,7 +215,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         if cidrs.isEmpty {
             logger.warning("buildIPv4Routes() no proxy cidrs")
         }
-        var routes: [NEIPv4Route] = cidrs.compactMap { cidr in
+        let routes: [NEIPv4Route] = cidrs.compactMap { cidr in
             let parts = cidr.split(separator: "/")
             guard parts.count == 2, let maskLen = Int(parts[1]),
                   let mask = cidrToSubnetMask(maskLen) else {
@@ -300,7 +301,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             return
         }
         self.lastOptions = options
-        initRustLogger()
+        initRustLogger(level: options["logLevel"] as? String)
         var errPtr: UnsafePointer<CChar>? = nil
         let ret = config.withCString { strPtr in
             return run_network_instance(strPtr, &errPtr)

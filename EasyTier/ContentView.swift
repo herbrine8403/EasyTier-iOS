@@ -14,7 +14,7 @@ struct ContentView<Manager: NEManagerProtocol>: View {
                     Image(systemName: "rectangle.and.text.magnifyingglass")
                     Text("Logs")
                 }
-            Text("Not Implemented")
+            SettingsView()
                 .tabItem {
                     Image(systemName: "gearshape")
                         .environment(\.symbolVariants, .none)
