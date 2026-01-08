@@ -20,7 +20,7 @@ struct ListEditor<Element, RowContent>: View where Element: Identifiable, RowCon
             Button(action: addItem) {
                 HStack {
                     Image(systemName: "plus.circle.fill")
-                    Text(newItemTitle ?? "Add a new item")
+                    Text(newItemTitle ?? "Add Item")
                 }
             }
         }

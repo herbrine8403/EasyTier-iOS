@@ -22,7 +22,7 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
     @State var renameInput = ""
     @State var toRenameProfileId: UUID?
     
-    @State var errorMessage: String?
+    @State var errorMessage: TextItem?
 
     @State private var darwinObserver: DarwinNotificationObserver? = nil
     
@@ -197,7 +197,7 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
                                 do {
                                     try await manager.connect(profile: selectedProfile.profile)
                                 } catch {
-                                    errorMessage = error.localizedDescription
+                                    errorMessage = .init(error.localizedDescription)
                                 }
                             }
                             isLocalPending = false
@@ -227,18 +227,18 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
                 try? await manager.load()
             }
             // Register Darwin notification observer for tunnel errors
-            darwinObserver = DarwinNotificationObserver(name: "site.yinmo.easytier.tunnel.error") { [weak manager] in
+            darwinObserver = DarwinNotificationObserver(name: "site.yinmo.easytier.tunnel.error") {
                 // Read the latest error from shared App Group defaults
                 let defaults = UserDefaults(suiteName: "group.site.yinmo.easytier")
                 if let msg = defaults?.string(forKey: "TunnelLastError") {
                     DispatchQueue.main.async {
-                        self.errorMessage = msg
+                        self.errorMessage = .init(msg)
                     }
                 }
             }
             // Also fetch any existing error on appear
             if let defaults = UserDefaults(suiteName: "group.site.yinmo.easytier"), let msg = defaults.string(forKey: "TunnelLastError") {
-                self.errorMessage = msg
+                self.errorMessage = .init(msg)
             }
         }
         .onChange(of: selectedProfile) {
@@ -256,7 +256,7 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
             sheetView
         }
         .alert(item: $errorMessage) { msg in
-            Alert(title: Text("Error"), message: Text(msg))
+            Alert(title: Text("Error"), message: Text(msg.text))
         }
     }
 }

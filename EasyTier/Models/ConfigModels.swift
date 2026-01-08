@@ -217,13 +217,13 @@ struct NetworkConfig: Codable {
         case .publicServer:
             self.peer = [PeerConfig(uri: profile.publicServerURL)]
         case .manual:
-            self.peer = profile.peerURLs.map { PeerConfig(uri: $0) }
+            self.peer = profile.peerURLs.map { PeerConfig(uri: $0.text) }
         case .standalone:
             break
         }
         
         if !profile.listenerURLs.isEmpty {
-            self.listeners = profile.listenerURLs
+            self.listeners = profile.listenerURLs.map { $0.text }
         }
         
         if !profile.proxyCIDRs.isEmpty {
@@ -257,7 +257,7 @@ struct NetworkConfig: Codable {
         }
         
         if !profile.exitNodes.isEmpty {
-            self.exitNodes = profile.exitNodes
+            self.exitNodes = profile.exitNodes.map { $0.text }
         }
         
         if profile.enableSocks5 {
@@ -265,7 +265,7 @@ struct NetworkConfig: Codable {
         }
         
         if !profile.mappedListeners.isEmpty {
-            self.mappedListeners = profile.mappedListeners
+            self.mappedListeners = profile.mappedListeners.map { $0.text }
         }
         
         var tempFlags = Flags()
@@ -298,7 +298,7 @@ struct NetworkConfig: Codable {
         }
         
         if profile.enableRelayNetworkWhitelist {
-            tempFlags.relayNetworkWhitelist = profile.relayNetworkWhitelist.joined(separator: " ")
+            tempFlags.relayNetworkWhitelist = profile.relayNetworkWhitelist.map { $0.text }.joined(separator: " ")
         }
         
         self.flags = tempFlags

@@ -8,7 +8,7 @@ struct LogLine: Identifiable, Equatable {
 
 class LogTailer: ObservableObject {
     @Published var logContent: [LogLine] = []
-    @Published var errorMessage: String?
+    @Published var errorMessage: TextItem?
     @Published var isWatching: Bool = false
     
     private var fileHandle: FileHandle?
@@ -18,7 +18,7 @@ class LogTailer: ObservableObject {
     /// Starts watching a specific file in an App Group
     func startWatching(appGroupID: String, filename: String, fromStart: Bool) {
         guard let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupID) else {
-            self.errorMessage = "Invalid App Group ID."
+            self.errorMessage = .init("Invalid App Group ID.")
             return
         }
         
@@ -63,7 +63,7 @@ class LogTailer: ObservableObject {
             
         } catch {
             DispatchQueue.main.async {
-                self.errorMessage = "Could not open file: \(error.localizedDescription)"
+                self.errorMessage = .init("Could not open file: \(error.localizedDescription)")
             }
         }
     }

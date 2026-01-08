@@ -98,7 +98,7 @@ final class NetworkProfile {
     var networkingMethod: NetworkingMethod = NetworkingMethod.publicServer
 
     var publicServerURL: String = "tcp://public.easytier.top:11010"
-    var peerURLs: [String] = []
+    var peerURLs: [TextItem] = []
 
     var proxyCIDRs: [ProxyCIDR] = []
 
@@ -106,7 +106,7 @@ final class NetworkProfile {
     var vpnPortalListenPort: Int = 22022
     var vpnPortalClientCIDR: CIDR = CIDR(ip: "10.144.144.0", length: "24")
 
-    var listenerURLs: [String] = ["tcp://0.0.0.0:11010", "udp://0.0.0.0:11010", "wg://0.0.0.0:11011"]
+    var listenerURLs: [TextItem] = ["tcp://0.0.0.0:11010", "udp://0.0.0.0:11010", "wg://0.0.0.0:11011"]
     var latencyFirst: Bool = false
 
     var useSmoltcp: Bool = false
@@ -128,20 +128,20 @@ final class NetworkProfile {
     var disableSymHolePunching: Bool = false
 
     var enableRelayNetworkWhitelist: Bool = false
-    var relayNetworkWhitelist: [String] = []
+    var relayNetworkWhitelist: [TextItem] = []
 
     var enableManualRoutes: Bool = false
     var routes: [CIDR] = []
     
     var portForwards: [PortForwardSetting] = []
 
-    var exitNodes: [String] = []
+    var exitNodes: [TextItem] = []
 
     var enableSocks5: Bool = false
     var socks5Port: Int = 1080
 
     var mtu: UInt32? = nil
-    var mappedListeners: [String] = []
+    var mappedListeners: [TextItem] = []
 
     var enableMagicDNS: Bool = false
     var enablePrivateMode: Bool = false

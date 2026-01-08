@@ -62,14 +62,9 @@ struct LogView: View {
             tailer.stop()
         }
         .alert(item: $tailer.errorMessage) { msg in
-            Alert(title: Text("Error"), message: Text(msg))
+            Alert(title: Text("Error"), message: Text(msg.text))
         }
     }
-}
-
-// Helper for Alert binding
-extension String: @retroactive Identifiable {
-    public var id: String { self }
 }
 
 struct LogView_Previews: PreviewProvider {

@@ -64,7 +64,7 @@ struct NetworkEditView: View {
                     }
                 case .manual:
                     ListEditor(newItemTitle: "Add Peer", items: $profile.peerURLs, addItemFactory: { "" }, rowContent: {
-                        TextField("e.g.: tcp://8.8.8.8:11010", text: $0)
+                        TextField("e.g.: tcp://8.8.8.8:11010", text: $0.text)
                             .fontDesign(.monospaced)
                     })
                 case .standalone:
@@ -94,6 +94,7 @@ struct NetworkEditView: View {
                         formatter: NumberFormatter()
                     )
                     .multilineTextAlignment(.trailing)
+                    .keyboardType(.numberPad)
                 }
             } header: {
                 Text("General")
@@ -119,13 +120,14 @@ struct NetworkEditView: View {
                             formatter: NumberFormatter()
                         )
                         .multilineTextAlignment(.trailing)
+                        .keyboardType(.numberPad)
                     }
                 }
             }
             
             Section("Listener URLs") {
                 ListEditor(newItemTitle: "Add Listener URL", items: $profile.listenerURLs, addItemFactory: { "" }, rowContent: {
-                    TextField("e.g: tcp://1.1.1.1:11010", text: $0)
+                    TextField("e.g: tcp://1.1.1.1:11010", text: $0.text)
                         .fontDesign(.monospaced)
                 })
             }
@@ -134,7 +136,7 @@ struct NetworkEditView: View {
                 Toggle("Enable", isOn: $profile.enableRelayNetworkWhitelist)
                 if profile.enableRelayNetworkWhitelist {
                     ListEditor(newItemTitle: "Add Network", items: $profile.relayNetworkWhitelist, addItemFactory: { "" }, rowContent: {
-                        TextField("e.g.: net1", text: $0)
+                        TextField("e.g.: net1", text: $0.text)
                             .fontDesign(.monospaced)
                     })
                 }
@@ -176,13 +178,14 @@ struct NetworkEditView: View {
                             formatter: NumberFormatter()
                         )
                         .multilineTextAlignment(.trailing)
+                        .keyboardType(.numberPad)
                     }
                 }
             }
             
             Section {
                 ListEditor(newItemTitle: "Add Exit Node", items: $profile.exitNodes, addItemFactory: { "" }, rowContent: {
-                    TextField("Node IP, e.g. 192.168.8.8", text: $0)
+                    TextField("Node IP, e.g. 192.168.8.8", text: $0.text)
                         .fontDesign(.monospaced)
                 })
             } header: {
@@ -195,7 +198,7 @@ struct NetworkEditView: View {
             
             Section {
                 ListEditor(newItemTitle: "Add Map Listener", items: $profile.mappedListeners, addItemFactory: { "" }, rowContent: {
-                    TextField("e.g.: tcp://123.123.123.123:11223", text: $0)
+                    TextField("e.g.: tcp://123.123.123.123:11223", text: $0.text)
                         .fontDesign(.monospaced)
                 })
             } header: {
@@ -246,13 +249,16 @@ struct NetworkEditView: View {
                             "Port",
                             value: $forward.bindPort,
                             formatter: NumberFormatter()
-                        ).frame(width: 60)
+                        )
+                        .frame(width: 60)
+                        .keyboardType(.numberPad)
                     }
                     HStack {
                         Image(systemName: "arrow.down")
-                            .foregroundColor(.secondary)
-                        Text("Forward to").foregroundColor(.secondary)
+                        Text("Forward to")
                     }
+                    .foregroundColor(.secondary)
+                    .font(.caption)
                     HStack {
                         TextField("Destination Address", text: $forward.destAddr)
                         Text(":")
@@ -260,7 +266,9 @@ struct NetworkEditView: View {
                             "Port",
                             value: $forward.destPort,
                             formatter: NumberFormatter()
-                        ).frame(width: 60)
+                        )
+                        .frame(width: 60)
+                        .keyboardType(.numberPad)
                     }
                 }
                 .padding(.vertical, 5)
