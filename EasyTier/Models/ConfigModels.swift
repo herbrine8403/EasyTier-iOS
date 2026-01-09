@@ -321,3 +321,253 @@ struct NetworkConfig: Codable {
         self.flags = tempFlags
     }
 }
+
+extension NetworkConfig {
+    var preferredName: String {
+        if let networkName = networkIdentity?.networkName, !networkName.isEmpty {
+            return networkName
+        }
+        return instanceName
+    }
+
+    func apply(to profile: NetworkProfile) {
+        let def = NetworkProfile(id: profile.id)
+
+        profile.dhcp = def.dhcp
+        profile.virtualIPv4 = def.virtualIPv4
+        profile.hostname = def.hostname
+        profile.networkSecret = def.networkSecret
+        profile.networkingMethod = def.networkingMethod
+        profile.publicServerURL = def.publicServerURL
+        profile.peerURLs = def.peerURLs
+        profile.proxyCIDRs = def.proxyCIDRs
+        profile.enableVPNPortal = def.enableVPNPortal
+        profile.vpnPortalListenPort = def.vpnPortalListenPort
+        profile.vpnPortalClientCIDR = def.vpnPortalClientCIDR
+        profile.listenerURLs = def.listenerURLs
+        profile.latencyFirst = def.latencyFirst
+        profile.useSmoltcp = def.useSmoltcp
+        profile.disableIPv6 = def.disableIPv6
+        profile.enableKCPProxy = def.enableKCPProxy
+        profile.disableKCPInput = def.disableKCPInput
+        profile.enableQUICProxy = def.enableQUICProxy
+        profile.disableQUICInput = def.disableQUICInput
+        profile.disableP2P = def.disableP2P
+        profile.p2pOnly = def.p2pOnly
+        profile.bindDevice = def.bindDevice
+        profile.noTUN = def.noTUN
+        profile.enableExitNode = def.enableExitNode
+        profile.relayAllPeerRPC = def.relayAllPeerRPC
+        profile.multiThread = def.multiThread
+        profile.proxyForwardBySystem = def.proxyForwardBySystem
+        profile.disableEncryption = def.disableEncryption
+        profile.disableUDPHolePunching = def.disableUDPHolePunching
+        profile.disableSymHolePunching = def.disableSymHolePunching
+        profile.enableRelayNetworkWhitelist = def.enableRelayNetworkWhitelist
+        profile.relayNetworkWhitelist = def.relayNetworkWhitelist
+        profile.enableManualRoutes = def.enableManualRoutes
+        profile.routes = def.routes
+        profile.portForwards = def.portForwards
+        profile.exitNodes = def.exitNodes
+        profile.enableSocks5 = def.enableSocks5
+        profile.socks5Port = def.socks5Port
+        profile.mtu = def.mtu
+        profile.mappedListeners = def.mappedListeners
+        profile.enableMagicDNS = def.enableMagicDNS
+        profile.enablePrivateMode = def.enablePrivateMode
+
+        if let hostname, !hostname.isEmpty {
+            profile.hostname = hostname
+        }
+        profile.networkSecret = networkIdentity?.networkSecret ?? def.networkSecret
+
+        if let dhcp {
+            profile.dhcp = dhcp
+        }
+        if let ipv4 {
+            let parsed = splitCIDR(ipv4, defaultLength: profile.virtualIPv4.length)
+            profile.virtualIPv4 = .init(ip: parsed.ip, length: parsed.length)
+            profile.dhcp = false
+        }
+
+        if let peer, !peer.isEmpty {
+            if peer.count == 1 {
+                profile.networkingMethod = .publicServer
+                profile.publicServerURL = peer[0].uri
+            } else {
+                profile.networkingMethod = .manual
+                profile.peerURLs = peer.map { .init($0.uri) }
+            }
+        } else {
+            profile.networkingMethod = .standalone
+        }
+
+        if let listeners, !listeners.isEmpty {
+            profile.listenerURLs = listeners.map { .init($0) }
+        }
+
+        if let proxyNetwork, !proxyNetwork.isEmpty {
+            profile.proxyCIDRs = proxyNetwork.map { item in
+                let parsed = splitCIDR(item.cidr, defaultLength: "32")
+                var entry = NetworkProfile.ProxyCIDR(
+                    cidr: parsed.ip,
+                    enableMapping: false,
+                    mappedCIDR: "0.0.0.0",
+                    length: parsed.length
+                )
+                if let mappedCIDR = item.mappedCIDR, !mappedCIDR.isEmpty {
+                    let mapped = splitCIDR(mappedCIDR, defaultLength: parsed.length)
+                    entry.enableMapping = true
+                    entry.mappedCIDR = mapped.ip
+                    entry.length = mapped.length
+                }
+                return entry
+            }
+        }
+
+        if let portForward, !portForward.isEmpty {
+            profile.portForwards = portForward.compactMap { item in
+                let bind = splitHostPort(item.bindAddr)
+                let dest = splitHostPort(item.dstAddr)
+                guard let bindPort = bind.port, let destPort = dest.port else {
+                    return nil
+                }
+                return NetworkProfile.PortForwardSetting(
+                    bindAddr: bind.host,
+                    bindPort: bindPort,
+                    destAddr: dest.host,
+                    destPort: destPort,
+                    proto: item.proto
+                )
+            }
+        }
+
+        if let vpnPortalConfig {
+            profile.enableVPNPortal = true
+            let parsed = splitCIDR(vpnPortalConfig.clientCIDR, defaultLength: profile.vpnPortalClientCIDR.length)
+            profile.vpnPortalClientCIDR = .init(ip: parsed.ip, length: parsed.length)
+            if let port = splitHostPort(vpnPortalConfig.wireguardListen).port {
+                profile.vpnPortalListenPort = port
+            }
+        }
+
+        if let routes, !routes.isEmpty {
+            profile.enableManualRoutes = true
+            profile.routes = routes.map { item in
+                let parsed = splitCIDR(item, defaultLength: "32")
+                return .init(ip: parsed.ip, length: parsed.length)
+            }
+        }
+
+        if let exitNodes, !exitNodes.isEmpty {
+            profile.exitNodes = exitNodes.map { .init($0) }
+        }
+
+        if let socks5Proxy, let port = parseSocks5Port(socks5Proxy) {
+            profile.enableSocks5 = true
+            profile.socks5Port = port
+        }
+
+        if let mappedListeners, !mappedListeners.isEmpty {
+            profile.mappedListeners = mappedListeners.map { .init($0) }
+        }
+
+        if let flags {
+            if let mtu = flags.mtu {
+                profile.mtu = mtu
+            }
+            if let latencyFirst = flags.latencyFirst {
+                profile.latencyFirst = latencyFirst
+            }
+            if let enableExitNode = flags.enableExitNode {
+                profile.enableExitNode = enableExitNode
+            }
+            if let noTUN = flags.noTUN {
+                profile.noTUN = noTUN
+            }
+            if let useSmoltcp = flags.useSmoltcp {
+                profile.useSmoltcp = useSmoltcp
+            }
+            if let disableP2P = flags.disableP2P {
+                profile.disableP2P = disableP2P
+            }
+            if let relayAllPeerRPC = flags.relayAllPeerRPC {
+                profile.relayAllPeerRPC = relayAllPeerRPC
+            }
+            if let disableUDPHolePunching = flags.disableUDPHolePunching {
+                profile.disableUDPHolePunching = disableUDPHolePunching
+            }
+            if let multiThread = flags.multiThread {
+                profile.multiThread = multiThread
+            }
+            if let bindDevice = flags.bindDevice {
+                profile.bindDevice = bindDevice
+            }
+            if let enableKCPProxy = flags.enableKCPProxy {
+                profile.enableKCPProxy = enableKCPProxy
+            }
+            if let disableKCPInput = flags.disableKCPInput {
+                profile.disableKCPInput = disableKCPInput
+            }
+            if let proxyForwardBySystem = flags.proxyForwardBySystem {
+                profile.proxyForwardBySystem = proxyForwardBySystem
+            }
+            if let enableQUICProxy = flags.enableQUICProxy {
+                profile.enableQUICProxy = enableQUICProxy
+            }
+            if let disableQUICInput = flags.disableQUICInput {
+                profile.disableQUICInput = disableQUICInput
+            }
+            if let disableSymHolePunching = flags.disableSymHolePunching {
+                profile.disableSymHolePunching = disableSymHolePunching
+            }
+            if let p2pOnly = flags.p2pOnly {
+                profile.p2pOnly = p2pOnly
+            }
+            if let enableIPv6 = flags.enableIPv6 {
+                profile.disableIPv6 = !enableIPv6
+            }
+            if let enableEncryption = flags.enableEncryption {
+                profile.disableEncryption = !enableEncryption
+            }
+            if let relayNetworkWhitelist = flags.relayNetworkWhitelist {
+                let items = relayNetworkWhitelist
+                    .split { $0 == " " || $0 == "\n" || $0 == "\t" }
+                    .map { String($0) }
+                profile.enableRelayNetworkWhitelist = !items.isEmpty
+                profile.relayNetworkWhitelist = items.map { .init($0) }
+            }
+            if let acceptDNS = flags.acceptDNS {
+                profile.enableMagicDNS = acceptDNS
+            }
+            if let privateMode = flags.privateMode {
+                profile.enablePrivateMode = privateMode
+            }
+        }
+    }
+
+    private func splitCIDR(_ value: String, defaultLength: String) -> (ip: String, length: String) {
+        let parts = value.split(separator: "/", maxSplits: 1).map(String.init)
+        if parts.count == 2, !parts[0].isEmpty, !parts[1].isEmpty {
+            return (parts[0], parts[1])
+        }
+        return (value, defaultLength)
+    }
+
+    private func splitHostPort(_ value: String) -> (host: String, port: Int?) {
+        let parts = value.split(separator: ":", omittingEmptySubsequences: false)
+        guard parts.count >= 2 else {
+            return (value, nil)
+        }
+        let port = Int(parts.last ?? "")
+        let host = parts.dropLast().joined(separator: ":")
+        return (String(host), port)
+    }
+
+    private func parseSocks5Port(_ value: String) -> Int? {
+        if let url = URL(string: value), let port = url.port {
+            return port
+        }
+        return splitHostPort(value).port
+    }
+}

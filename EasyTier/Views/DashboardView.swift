@@ -2,6 +2,8 @@ import SwiftData
 import SwiftUI
 import NetworkExtension
 import os
+import TOMLKit
+import UniformTypeIdentifiers
 
 private let DashboardLogger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "App", category: "Dashboard")
 
@@ -15,10 +17,16 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
     @State var selectedProfileId: UUID?
     @State var isLocalPending = false
     
-    @State var showSheet = false
+    @State var showManageSheet = false
 
     @State var showNewNetworkAlert = false
     @State var newNetworkInput = ""
+
+    @State private var showImportPicker = false
+    @State private var showExportSheet = false
+    @State private var exportURL: URL?
+    @State private var showEditSheet = false
+    @State private var editText = ""
     
     @State var errorMessage: TextItem?
 
@@ -108,6 +116,15 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
                         }
                     }
                     Button {
+                        presentEditInText()
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "long.text.page.and.pencil")
+                            Text("Edit in text")
+                        }
+                    }
+                    Button {
+                        showImportPicker = true
                     } label: {
                         HStack(spacing: 12) {
                             Image(systemName: "arrow.down.document")
@@ -115,10 +132,11 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
                         }
                     }
                     Button {
+                        exportSelectedProfile()
                     } label: {
                         HStack(spacing: 12) {
-                            Image(systemName: "long.text.page.and.pencil")
-                            Text("Edit in text")
+                            Image(systemName: "square.and.arrow.up")
+                            Text("Export and share")
                         }
                     }
                 }
@@ -127,7 +145,7 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 Button {
-                    showSheet = false
+                    showManageSheet = false
                 } label: {
                     Image(systemName: "checkmark")
                 }
@@ -158,7 +176,7 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Select Network", systemImage: "chevron.up.chevron.down") {
-                        showSheet = true
+                        showManageSheet = true
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
@@ -225,12 +243,131 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
             // Release observer to remove registration
             darwinObserver = nil
         }
-        .sheet(isPresented: $showSheet) {
+        .fileImporter(
+            isPresented: $showImportPicker,
+            allowedContentTypes: [UTType(filenameExtension: "toml") ?? .plainText],
+            allowsMultipleSelection: false
+        ) { result in
+            switch result {
+            case .success(let urls):
+                guard let url = urls.first else { return }
+                importConfig(from: url)
+            case .failure(let error):
+                errorMessage = .init(error.localizedDescription)
+            }
+        }
+        .sheet(isPresented: $showManageSheet) {
             sheetView
+        }
+        .sheet(isPresented: $showEditSheet) {
+            NavigationStack {
+                VStack(spacing: 0) {
+                    TextEditor(text: $editText)
+                        .font(.system(.body, design: .monospaced))
+                        .padding(8)
+                }
+                .navigationTitle("Edit Config")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button("Cancel") {
+                            showEditSheet = false
+                        }
+                    }
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Save") {
+                            saveEditInText()
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showExportSheet) {
+            if let url = exportURL {
+                ShareSheet(activityItems: [url])
+            }
         }
         .alert(item: $errorMessage) { msg in
             DashboardLogger.error("received error: \(String(describing: msg))")
             return Alert(title: Text("Error"), message: Text(msg.text))
+        }
+    }
+
+    private func importConfig(from url: URL) {
+        let scoped = url.startAccessingSecurityScopedResource()
+        defer {
+            if scoped {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+        do {
+            let toml = try String(contentsOf: url, encoding: .utf8)
+            let config = try TOMLDecoder().decode(NetworkConfig.self, from: toml)
+            let name = config.preferredName.isEmpty ? "easytier" : config.preferredName
+            let profile = ProfileSummary(name: name, context: context)
+            config.apply(to: profile.profile)
+            context.insert(profile)
+            selectedProfileId = profile.id
+        } catch {
+            DashboardLogger.error("import failed: \(error)")
+            errorMessage = .init(error.localizedDescription)
+        }
+    }
+
+    private func exportSelectedProfile() {
+        guard let selectedProfile else {
+            errorMessage = .init("Please select a network.")
+            return
+        }
+        do {
+            let config = NetworkConfig(from: selectedProfile.profile, name: selectedProfile.name)
+            let encoded = try TOMLEncoder().encode(config).string ?? ""
+            let safeName = selectedProfile.name.isEmpty ? "easytier" : selectedProfile.name
+            let url = FileManager.default.temporaryDirectory
+                .appendingPathComponent("\(safeName).toml")
+            try encoded.write(to: url, atomically: true, encoding: .utf8)
+            showManageSheet = false
+            exportURL = url
+            showExportSheet = true
+        } catch {
+            DashboardLogger.error("export failed: \(error)")
+            errorMessage = .init(error.localizedDescription)
+        }
+    }
+
+    private func presentEditInText() {
+        guard let selectedProfile else {
+            errorMessage = .init("Please select a network.")
+            return
+        }
+        do {
+            let config = NetworkConfig(from: selectedProfile.profile, name: selectedProfile.name)
+            showManageSheet = false
+            editText = try TOMLEncoder().encode(config).string ?? ""
+            showEditSheet = true
+        } catch {
+            DashboardLogger.error("edit load failed: \(error)")
+            errorMessage = .init(error.localizedDescription)
+        }
+    }
+
+    private func saveEditInText() {
+        guard let selectedProfile else {
+            errorMessage = .init("Please select a network.")
+            return
+        }
+        do {
+            let config = try TOMLDecoder().decode(NetworkConfig.self, from: editText)
+            config.apply(to: selectedProfile.profile)
+            let name = config.preferredName
+            if !name.isEmpty {
+                selectedProfile.name = name
+            }
+            showEditSheet = false
+        } catch {
+            DashboardLogger.error("edit save failed: \(error)")
+            errorMessage = .init(error.localizedDescription)
         }
     }
 }
@@ -250,4 +387,3 @@ struct DashboardView_Previews: PreviewProvider {
         .environmentObject(manager)
     }
 }
-
