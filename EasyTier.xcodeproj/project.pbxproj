@@ -52,11 +52,21 @@
 			);
 			target = 0558362D2F04D26600139811 /* EasyTierNetworkExtension */;
 		};
+		058FD0B82F1111A200580896 /* Exceptions for "EasyTier" folder in "EasyTier" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 051C6A0A2F03AB0000AF29B1 /* EasyTier */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		051C6A0D2F03AB0000AF29B1 /* EasyTier */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				058FD0B82F1111A200580896 /* Exceptions for "EasyTier" folder in "EasyTier" target */,
+			);
 			path = EasyTier;
 			sourceTree = "<group>";
 		};
