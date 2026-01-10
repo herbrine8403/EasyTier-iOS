@@ -18,6 +18,7 @@ struct NetworkEditView: View {
                 portForwardsSettings
             }
         }
+        .scrollDismissesKeyboard(.immediately)
     }
 
     var basicSettings: some View {
@@ -221,6 +222,7 @@ struct NetworkEditView: View {
                 }
             }
         }
+        .scrollDismissesKeyboard(.immediately)
         .navigationTitle("Advanced Settings")
         .sheet(isPresented: $showProxyCIDREditor) {
             proxyCIDREditor
@@ -274,6 +276,7 @@ struct NetworkEditView: View {
                 .padding(.vertical, 5)
             })
         }
+        .scrollDismissesKeyboard(.immediately)
         .navigationTitle("Port Forwards")
     }
     

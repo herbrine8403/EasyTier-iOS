@@ -178,6 +178,7 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
                     Button("Select Network", systemImage: "chevron.up.chevron.down") {
                         showManageSheet = true
                     }
+                    .disabled(isPending || isConnected)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {

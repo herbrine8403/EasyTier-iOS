@@ -29,6 +29,7 @@ struct SettingsView: View {
                                 value: $statusRefreshInterval,
                                 formatter: NumberFormatter()
                             )
+                            .contentShape(Rectangle())
                             .multilineTextAlignment(.trailing)
                             .keyboardType(.decimalPad)
                             Text("s")
@@ -44,7 +45,7 @@ struct SettingsView: View {
                     LabeledContent("Version") {
                         Text(appVersion)
                     }
-                    Link("GitHub Repository", destination: URL(string: "https://github.com/chenx-dust/EasyTier-iOS")!)
+                    Link("GitHub Repository", destination: URL(string: "https://github.com/EasyTier/EasyTier-iOS")!)
                     NavigationLink("Open Source License") {
                         openSourceLicenseView
                     }
@@ -52,6 +53,7 @@ struct SettingsView: View {
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
+            .scrollDismissesKeyboard(.immediately)
         }
     }
     
