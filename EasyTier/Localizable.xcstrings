@@ -2999,7 +2999,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "网络名称"
+            "value" : "名称"
           }
         }
       }
@@ -3033,7 +3033,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "网络密码"
+            "value" : "密码"
           }
         }
       }
