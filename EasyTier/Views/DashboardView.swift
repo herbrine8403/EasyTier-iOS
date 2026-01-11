@@ -5,18 +5,18 @@ import os
 import TOMLKit
 import UniformTypeIdentifiers
 
-private let DashboardLogger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "App", category: "Dashboard")
+private let DashboardLogger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "App", category: "web.main.dashboard")
 
 struct DashboardView<Manager: NEManagerProtocol>: View {
     @Environment(\.modelContext) var context
     @Query(sort: \ProfileSummary.createdAt) var networks: [ProfileSummary]
-    
+
     @EnvironmentObject var manager: Manager
 
     @AppStorage("lastSelected") var lastSelected: String?
     @State var selectedProfileId: UUID?
     @State var isLocalPending = false
-    
+
     @State var showManageSheet = false
 
     @State var showNewNetworkAlert = false
@@ -27,25 +27,25 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
     @State private var exportURL: URL?
     @State private var showEditSheet = false
     @State private var editText = ""
-    
+
     @State var errorMessage: TextItem?
 
     @State private var darwinObserver: DNObserver? = nil
-    
+
     var selectedProfile: ProfileSummary? {
         guard let selectedProfileId else { return nil }
         return networks.first {
             $0.id == selectedProfileId
         }
     }
-    
+
     var isConnected: Bool {
         [.connected, .disconnecting].contains(manager.status)
     }
     var isPending: Bool {
         isLocalPending || [.connecting, .disconnecting, .reasserting].contains(manager.status)
     }
-    
+
     var mainView: some View {
         Group {
             if let selectedProfile {
@@ -63,7 +63,7 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
                         .resizable()
                         .frame(width: 64, height: 64)
                         .foregroundStyle(Color.accentColor)
-                    Text("Please select a network.")
+                    Text("web.device_management.no_network_selected")
                     Spacer()
                 }
                 .frame(maxWidth: .infinity)
@@ -71,7 +71,7 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
             }
         }
     }
-    
+
     func createProfile() {
         let profile = ProfileSummary(
             name: newNetworkInput.isEmpty
@@ -81,11 +81,11 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
         context.insert(profile)
         selectedProfileId = profile.id
     }
-    
+
     var sheetView: some View {
         NavigationStack {
             Form {
-                Section("Network") {
+                Section("network") {
                     ForEach(networks, id: \.self) { item in
                         Button {
                             if selectedProfileId == item.id {
@@ -116,13 +116,13 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
                         }
                     }
                 }
-                Section("Manage") {
+                Section("web.device.management") {
                     Button {
                         showNewNetworkAlert = true
                     } label: {
                         HStack(spacing: 12) {
                             Image(systemName: "document.badge.plus")
-                            Text("Create a network")
+                            Text("web.device_management.create_network")
                         }
                     }
                     Button {
@@ -130,7 +130,7 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
                     } label: {
                         HStack(spacing: 12) {
                             Image(systemName: "long.text.page.and.pencil")
-                            Text("Edit in text")
+                            Text("web.device_management.edit_as_file")
                         }
                     }
                     Button {
@@ -138,7 +138,7 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
                     } label: {
                         HStack(spacing: 12) {
                             Image(systemName: "arrow.down.document")
-                            Text("Import from file")
+                            Text("web.device_management.import_config")
                         }
                     }
                     Button {
@@ -146,12 +146,12 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
                     } label: {
                         HStack(spacing: 12) {
                             Image(systemName: "square.and.arrow.up")
-                            Text("Export and share")
+                            Text("web.device_management.export_config")
                         }
                     }
                 }
             }
-            .navigationTitle("Manage Networks")
+            .navigationTitle("web.device.management")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 Button {
@@ -161,15 +161,15 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
                 }
                 .buttonStyle(.borderedProminent)
             }
-            .alert("New Network", isPresented: $showNewNetworkAlert) {
-                TextField("Name of the new network", text: $newNetworkInput)
+            .alert("add_new_network", isPresented: $showNewNetworkAlert) {
+                TextField("network_name", text: $newNetworkInput)
                     .textInputAutocapitalization(.never)
                 if #available(iOS 26.0, *) {
                     Button(role: .cancel) {}
-                    Button("Create", role: .confirm, action: createProfile)
+                    Button("web.network.create", role: .confirm, action: createProfile)
                 } else {
-                    Button("Cancel") {}
-                    Button("Create", action: createProfile)
+                    Button("web.common.cancel") {}
+                    Button("web.network.create", action: createProfile)
                 }
             }
         }
@@ -178,10 +178,10 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
     var body: some View {
         NavigationStack {
             mainView
-            .navigationTitle(selectedProfile?.name ?? "Select Network")
+            .navigationTitle(selectedProfile?.name ?? "select_network")
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Select Network", systemImage: "chevron.up.chevron.down") {
+                    Button("select_network", systemImage: "chevron.up.chevron.down") {
                         showManageSheet = true
                     }
                     .disabled(isPending || isConnected)
@@ -205,7 +205,7 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
                         }
                     } label: {
                         Label(
-                            isConnected ? "Disconnect" : "Connect",
+                            isConnected ? "stop_network" : "run_network",
                             systemImage: isConnected ? "cable.connector.slash" : "cable.connector"
                         )
                         .labelStyle(.titleAndIcon)
@@ -273,16 +273,16 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
                         .font(.system(.body, design: .monospaced))
                         .padding(8)
                 }
-                .navigationTitle("Edit Config")
+                .navigationTitle("edit_config")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
-                        Button("Cancel") {
+                        Button("web.common.cancel") {
                             showEditSheet = false
                         }
                     }
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button("Save") {
+                        Button("save") {
                             saveEditInText()
                         }
                         .buttonStyle(.borderedProminent)
@@ -297,7 +297,7 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
         }
         .alert(item: $errorMessage) { msg in
             DashboardLogger.error("received error: \(String(describing: msg))")
-            return Alert(title: Text("Error"), message: Text(msg.text))
+            return Alert(title: Text("web.common.error"), message: Text(msg.text))
         }
     }
 

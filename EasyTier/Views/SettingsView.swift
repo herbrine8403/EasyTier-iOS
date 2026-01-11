@@ -21,7 +21,7 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             AdaptiveNav(primaryColumn, secondaryColumn, showNav: $selectedPane)
-                .navigationTitle("Settings")
+                .navigationTitle("settings")
                 .navigationBarTitleDisplayMode(.inline)
                 .scrollDismissesKeyboard(.immediately)
         }
@@ -29,13 +29,13 @@ struct SettingsView: View {
     
     var primaryColumn: some View {
         List(selection: $selectedPane) {
-            Section("General") {
-                Picker("Log Level", selection: $logLevel) {
+            Section("basic_settings") {
+                Picker("mode.log_level", selection: $logLevel) {
                     ForEach(logLevels, id: \.self) { level in
                         Text(level.uppercased()).tag(level)
                     }
                 }
-                LabeledContent("Refresh Interval") {
+                LabeledContent("web.common.refresh") {
                     HStack {
                         TextField(
                             "1.0",
@@ -48,19 +48,19 @@ struct SettingsView: View {
                         Text("s")
                     }
                 }
-                Toggle("Use Device Name as Default", isOn: $useRealDeviceNameAsDefault)
+                Toggle("common_text.use_device_name", isOn: $useRealDeviceNameAsDefault)
             }
 
-            Section("About") {
+            Section("about.title") {
                 LabeledContent("App") {
                     Text("EasyTier")
                 }
-                LabeledContent("Version") {
+                LabeledContent("status.version") {
                     Text(appVersion)
                 }
-                Link("GitHub Repository", destination: URL(string: "https://github.com/EasyTier/EasyTier-iOS")!)
+                Link("about.homepage", destination: URL(string: "https://github.com/EasyTier/EasyTier-iOS")!)
                 
-                NavigationLink("Open Source License", value: SettingsPane.license)
+                NavigationLink("about.license", value: SettingsPane.license)
             }
         }
     }
@@ -169,7 +169,7 @@ struct SettingsView: View {
                 .fontDesign(.monospaced)
             }
         }
-        .navigationTitle("License")
+        .navigationTitle("about.license")
     }
 }
 

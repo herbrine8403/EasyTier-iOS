@@ -18,7 +18,7 @@ struct LogView: View {
     @State private var exportURL: URL?
     @State private var isExportPresented = false
     @State private var exportErrorMessage: TextItem?
-    
+
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading) {
@@ -44,7 +44,7 @@ struct LogView: View {
                 }
                 .background(Color(UIColor.systemGroupedBackground))
             }
-            .navigationTitle("Logs")
+            .navigationTitle("logging")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -98,10 +98,10 @@ struct LogView: View {
             }
         }
         .alert(item: $tailer.errorMessage) { msg in
-            Alert(title: Text("Error"), message: Text(msg.text))
+            Alert(title: Text("web.common.error"), message: Text(msg.text))
         }
         .alert(item: $exportErrorMessage) { msg in
-            Alert(title: Text("Error"), message: Text(msg.text))
+            Alert(title: Text("web.common.error"), message: Text(msg.text))
         }
         .sheet(isPresented: $isExportPresented) {
             if let url = exportURL {
@@ -148,16 +148,16 @@ struct LogView_Previews: PreviewProvider {
                 }
             }
     }
-    
+
     // Helper function to write to the file
     static func writeSimulatedLog() {
         // Must match the ID and Filename above
         guard let url = FileManager.default
             .containerURL(forSecurityApplicationGroupIdentifier: APP_GROUP_ID)?
             .appendingPathComponent(LOG_FILENAME) else { return }
-        
+
         let message = "Preview Event: \(Date().formatted(date: .omitted, time: .standard))\n"
-        
+
         // Simple append logic
         if let handle = try? FileHandle(forWritingTo: url) {
             handle.seekToEndOfFile()

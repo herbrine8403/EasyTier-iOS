@@ -21,8 +21,8 @@ struct StatusView<Manager: NEManagerProtocol>: View {
         
         var description: String {
             switch self {
-            case .peerInfo: "Peer Info"
-            case .eventLog: "Event Log"
+            case .peerInfo: "peer_info"
+            case .eventLog: "event_log"
             }
         }
     }
@@ -71,12 +71,12 @@ struct StatusView<Manager: NEManagerProtocol>: View {
     
     var singleColumn: some View {
         Form {
-            Section("Status") {
+            Section("web.device.status") {
                 localStatus
             }
 
             if let error = status?.errorMsg {
-                Section("Error") {
+                Section("web.common.error") {
                     HStack {
                         Image(systemName: "exclamationmark.triangle.fill")
                         Text(error)
@@ -85,9 +85,9 @@ struct StatusView<Manager: NEManagerProtocol>: View {
                 }
             }
 
-            Section("Information") {
+            Section("web.common.info") {
                 Picker(
-                    "Information to Show",
+                    "web.common.info",
                     selection: $selectedInfoKind
                 ) {
                     ForEach(InfoKind.allCases) {
@@ -109,12 +109,12 @@ struct StatusView<Manager: NEManagerProtocol>: View {
     var doubleComlum: some View {
         HStack(spacing: 0) {
             Form {
-                Section("Status") {
+                Section("web.device.status") {
                     localStatus
                 }
 
                 if let error = status?.errorMsg {
-                    Section("Error") {
+                    Section("web.common.error") {
                         HStack {
                             Image(systemName: "exclamationmark.triangle.fill")
                             Text(error)
@@ -123,13 +123,13 @@ struct StatusView<Manager: NEManagerProtocol>: View {
                     }
                 }
                 
-                Section("Peer Info") {
+                Section("peer_info") {
                     peerInfo
                 }
             }
             .frame(maxWidth: columnWidth)
             Form {
-                Section("Event Log") {
+                Section("event_log") {
                     TimelineLogPanel(events: status?.events ?? [])
                 }
             }
@@ -168,7 +168,7 @@ struct StatusView<Manager: NEManagerProtocol>: View {
                     showNodeInfo = true
                 } label: {
                     StatItem(
-                        label: "Virtual IP",
+                        label: String(localized: "virtual_ipv4"),
                         value: status?.myNodeInfo?.virtualIPv4?.description ?? "N/A",
                         icon: "network"
                     )
@@ -179,7 +179,7 @@ struct StatusView<Manager: NEManagerProtocol>: View {
                     showStunInfo = true
                 } label: {
                     StatItem(
-                        label: "NAT Type",
+                        label: String(localized: "nat_type"),
                         value: status?.myNodeInfo?.stunInfo?.udpNATType.description ?? "N/A",
                         icon: "shield"
                     )
@@ -394,7 +394,7 @@ struct TrafficItem: View {
                     Image(systemName: "arrow.up.arrow.down")
                         .symbolRenderingMode(.palette)
                         .foregroundStyle(.orange, .orange.opacity(0.3))
-                    Text("Upload")
+                    Text("upload")
                         .foregroundStyle(.orange)
                 }
                 .font(.subheadline)
@@ -403,7 +403,7 @@ struct TrafficItem: View {
                     Image(systemName: "arrow.up.arrow.down")
                         .symbolRenderingMode(.palette)
                         .foregroundStyle(.blue.opacity(0.3), .blue)
-                    Text("Download")
+                    Text("download")
                         .foregroundStyle(.blue)
                 }
                 .font(.subheadline)
@@ -457,8 +457,8 @@ struct StatusBadge: View {
     }
 
     enum ActiveStatus: String {
-        case Stopped = "Stopped"
-        case Running = "Running"
+        case Stopped = "mode.service_status_stopped"
+        case Running = "network_running"
         case Loading = "Loading"
 
         init(_ active: Bool?) {
@@ -620,7 +620,7 @@ struct PeerConnDetailSheet: View {
         NavigationStack {
             Form {
                 Section("Peer") {
-                    LabeledContent("Hostname", value: pair.route.hostname)
+                    LabeledContent("hostname", value: pair.route.hostname)
                     LabeledContent("Peer ID", value: String(pair.route.peerId))
                 }
 
@@ -632,17 +632,17 @@ struct PeerConnDetailSheet: View {
                 } else {
                     ForEach(conns, id: \.connId) { conn in
                         Section("Connection \(conn.connId)") {
-                            LabeledContent("Role", value: conn.isClient ? "Client" : "Server")
-                            LabeledContent("Loss Rate", value: percentString(conn.lossRate))
-                            LabeledContent("Network", value: conn.networkName ?? "N/A")
+                            LabeledContent("Role", value: conn.isClient ? "Client" : "status.server")
+                            LabeledContent("loss_rate", value: percentString(conn.lossRate))
+                            LabeledContent("network", value: conn.networkName ?? "N/A")
                             LabeledContent("Closed", value: triState(conn.isClosed))
 
                             LabeledContent("Features", value: conn.features.isEmpty ? "None" : conn.features.joined(separator: ", "))
 
                             if let tunnel = conn.tunnel {
                                 LabeledContent("Tunnel Type", value: tunnel.tunnelType.uppercased())
-                                LabeledContent("Local", value: tunnel.localAddr.url)
-                                LabeledContent("Remote", value: tunnel.remoteAddr.url)
+                                LabeledContent("status.local", value: tunnel.localAddr.url)
+                                LabeledContent("mode.remote", value: tunnel.remoteAddr.url)
                             }
 
                             if let stats = conn.stats {
@@ -650,7 +650,7 @@ struct PeerConnDetailSheet: View {
                                 LabeledContent("Tx Bytes", value: formatBytes(stats.txBytes))
                                 LabeledContent("Rx Packets", value: String(stats.rxPackets))
                                 LabeledContent("Tx Packets", value: String(stats.txPackets))
-                                LabeledContent("Latency", value: latencyString(stats.latencyUs))
+                                LabeledContent("latency", value: latencyString(stats.latencyUs))
                             }
                         }
                     }
@@ -676,7 +676,7 @@ struct PeerConnDetailSheet: View {
     }
 
     private func triState(_ value: Bool?) -> String {
-        guard let value else { return "Unknown" }
+        guard let value else { return "event.Unknown" }
         return value ? "Yes" : "No"
     }
 }
@@ -689,10 +689,10 @@ struct NodeInfoSheet: View {
             Form {
                 if let nodeInfo {
                     Section("Basic Info") {
-                        LabeledContent("Hostname", value: nodeInfo.hostname)
-                        LabeledContent("Version", value: nodeInfo.version)
+                        LabeledContent("hostname", value: nodeInfo.hostname)
+                        LabeledContent("status.version", value: nodeInfo.version)
                         if let virtualIPv4 = nodeInfo.virtualIPv4 {
-                            LabeledContent("Virtual IPv4", value: virtualIPv4.description)
+                            LabeledContent("virtual_ipv4", value: virtualIPv4.description)
                         }
                     }
                     

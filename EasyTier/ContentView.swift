@@ -9,18 +9,18 @@ struct ContentView<Manager: NEManagerProtocol>: View {
             DashboardView<Manager>()
                 .tabItem {
                     Image(systemName: "list.bullet.below.rectangle")
-                    Text("Dashboard")
+                    Text("web.main.dashboard")
                 }
             LogView()
                 .tabItem {
                     Image(systemName: "rectangle.and.text.magnifyingglass")
-                    Text("Logs")
+                    Text("logging")
                 }
             SettingsView()
                 .tabItem {
                     Image(systemName: "gearshape")
                         .environment(\.symbolVariants, .none)
-                    Text("Settings")
+                    Text("settings")
                 }
         }
     }

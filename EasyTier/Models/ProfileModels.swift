@@ -40,9 +40,9 @@ final class NetworkProfile {
         
         var description: String {
             switch self {
-            case .publicServer: return "Public Server"
-            case .manual: return "Manual"
-            case .standalone: return "Standalone"
+            case .publicServer: return "public_server"
+            case .manual: return "manual"
+            case .standalone: return "standalone"
             }
         }
     }
@@ -153,111 +153,103 @@ final class NetworkProfile {
     static let boolFlags: [BoolFlag] = [
         .init(
             keyPath: \.latencyFirst,
-            label: "Latency-First Mode",
-            help:
-                "Ignore hop count and select the path with the lowest total latency."
+            label: "use_latency_first",
+            help: "latency_first_help"
         ),
         .init(
             keyPath: \.useSmoltcp,
-            label: "Use User-Space Protocol Stack",
-            help:
-                "Use a user-space TCP/IP stack to avoid issues with OS firewalls."
+            label: "use_smoltcp",
+            help: "use_smoltcp_help"
         ),
         .init(
             keyPath: \.disableIPv6,
-            label: "Disable IPv6",
-            help: "Disable IPv6 functionality for this node."
+            label: "disable_ipv6",
+            help: "disable_ipv6_help"
         ),
         .init(
             keyPath: \.enableKCPProxy,
-            label: "Enable KCP Proxy",
-            help: "Convert TCP traffic to KCP to reduce latency."
+            label: "enable_kcp_proxy",
+            help: "enable_kcp_proxy_help"
         ),
         .init(
             keyPath: \.disableKCPInput,
-            label: "Disable KCP Input",
-            help: "Disable inbound KCP traffic."
+            label: "disable_kcp_input",
+            help: "disable_kcp_input_help"
         ),
         .init(
             keyPath: \.enableQUICProxy,
-            label: "Enable QUIC Proxy",
-            help: "Convert TCP traffic to QUIC to reduce latency."
+            label: "enable_quic_proxy",
+            help: "enable_quic_proxy_help"
         ),
         .init(
             keyPath: \.disableQUICInput,
-            label: "Disable QUIC Input",
-            help: "Disable inbound QUIC traffic."
+            label: "disable_quic_input",
+            help: "disable_quic_input_help"
         ),
         .init(
             keyPath: \.disableP2P,
-            label: "Disable P2P",
-            help: "Route all traffic through a manually specified relay server."
+            label: "disable_p2p",
+            help: "disable_p2p_help"
         ),
         .init(
             keyPath: \.p2pOnly,
-            label: "P2P Only",
-            help:
-                "Only communicate with peers that have established P2P connections."
+            label: "p2p_only",
+            help: "p2p_only_help"
         ),
         .init(
             keyPath: \.bindDevice,
-            label: "Bind to Physical Device Only",
-            help: "Use only the physical network interface."
+            label: "bind_device",
+            help: "bind_device_help"
         ),
         .init(
             keyPath: \.noTUN,
-            label: "No TUN Mode",
-            help:
-                "Do not use a TUN interface. This node will be accessible but cannot initiate connections to others without SOCKS5."
+            label: "no_tun",
+            help: "no_tun_help"
         ),
         .init(
             keyPath: \.enableExitNode,
-            label: "Enable Exit Node",
-            help: "Allow this node to be an exit node."
+            label: "enable_exit_node",
+            help: "enable_exit_node_help"
         ),
         .init(
             keyPath: \.relayAllPeerRPC,
-            label: "Relay All Peer RPC",
-            help:
-                "Relay all peer RPC packets, even for peers not in the whitelist."
+            label: "relay_all_peer_rpc",
+            help: "relay_all_peer_rpc_help"
         ),
         .init(
             keyPath: \.multiThread,
-            label: "Multi-Threaded Runtime",
-            help: "Use a multi-thread runtime for performance."
+            label: "multi_thread",
+            help: "multi_thread_help"
         ),
         .init(
             keyPath: \.proxyForwardBySystem,
-            label: "System Forwarding for Proxy",
-            help: "Forward packets to proxy networks via the system kernel."
+            label: "proxy_forward_by_system",
+            help: "proxy_forward_by_system_help"
         ),
         .init(
             keyPath: \.disableEncryption,
-            label: "Disable Encryption",
-            help:
-                "Disable encryption for peer communication. Must be the same on all peers."
+            label: "disable_encryption",
+            help: "disable_encryption_help"
         ),
         .init(
             keyPath: \.disableUDPHolePunching,
-            label: "Disable UDP Hole Punching",
-            help: "Disable the UDP hole punching mechanism."
+            label: "disable_udp_hole_punching",
+            help: "disable_udp_hole_punching_help"
         ),
         .init(
             keyPath: \.disableSymHolePunching,
-            label: "Disable Symmetric NAT Hole Punching",
-            help: "Disable special handling for symmetric NATs."
+            label: "disable_sym_hole_punching",
+            help: "disable_sym_hole_punching_help"
         ),
         .init(
             keyPath: \.enableMagicDNS,
-            label: "Enable Magic DNS",
-            help:
-                "Access nodes in the network by their hostname via a special DNS."
+            label: "enable_magic_dns",
+            help: "enable_magic_dns_help"
         ),
         .init(
             keyPath: \.enablePrivateMode,
-            label: "Enable Private Mode",
-            help:
-                "Do not allow handshake or relay for nodes with a different network name or secret."
+            label: "enable_private_mode",
+            help: "enable_private_mode_help"
         ),
     ]
 }

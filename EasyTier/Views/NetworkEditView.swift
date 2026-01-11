@@ -20,8 +20,8 @@ struct NetworkEditView: View {
     var primaryColumn: some View {
         List(selection: $selectedPane) {
             basicSettings
-            NavigationLink("Advanced Settings", value: EditPane.advanced)
-            NavigationLink("Port Forwards", value: EditPane.portForwards)
+            NavigationLink("advanced_settings", value: EditPane.advanced)
+            NavigationLink("port_forwards", value: EditPane.portForwards)
         }
         .scrollDismissesKeyboard(.immediately)
     }
@@ -49,49 +49,49 @@ struct NetworkEditView: View {
 
     var basicSettings: some View {
         Group {
-            Section("Virtual IPv4") {
-                Toggle("DHCP", isOn: $profile.dhcp)
+            Section("virtual_ipv4") {
+                Toggle("virtual_ipv4_dhcp", isOn: $profile.dhcp)
 
                 if !profile.dhcp {
-                    LabeledContent("Address") {
+                    LabeledContent("virtual_ipv4") {
                         IPv4Field(ip: $profile.virtualIPv4.ip, length: $profile.virtualIPv4.length)
                     }
                 }
             }
 
-            Section("Network") {
-                LabeledContent("Name") {
+            Section("network") {
+                LabeledContent("network_name") {
                     TextField("easytier", text: $name)
                         .multilineTextAlignment(.trailing)
                 }
 
-                LabeledContent("Secret") {
+                LabeledContent("network_secret") {
                     SecureField(
-                        "Empty",
+                        "common_text.empty",
                         text: $profile.networkSecret
                     )
                     .multilineTextAlignment(.trailing)
                 }
 
                 Picker(
-                    "Networking Method",
+                    "networking_method",
                     selection: $profile.networkingMethod
                 ) {
                     ForEach(NetworkProfile.NetworkingMethod.allCases) {
                         method in
-                        Text(method.description).tag(method)
+                        Text(LocalizedStringKey(method.description)).tag(method)
                     }
                 }
                 .pickerStyle(.palette)
 
                 switch profile.networkingMethod {
                 case .publicServer:
-                    LabeledContent("Server") {
+                    LabeledContent("status.server") {
                         Text(profile.publicServerURL)
                             .multilineTextAlignment(.trailing)
                     }
                 case .manual:
-                    ListEditor(newItemTitle: "Add Peer", items: $profile.peerURLs, addItemFactory: { "" }, rowContent: {
+                    ListEditor(newItemTitle: "common_text.add_peer", items: $profile.peerURLs, addItemFactory: { "" }, rowContent: {
                         TextField("e.g.: tcp://8.8.8.8:11010", text: $0.text)
                             .fontDesign(.monospaced)
                     })
@@ -104,9 +104,9 @@ struct NetworkEditView: View {
 
     var advancedSettings: some View {
         Form {
-            Section("General") {
-                LabeledContent("Hostname") {
-                    TextField("Default", text: $profile.hostname.bound)
+            Section("basic_settings") {
+                LabeledContent("hostname") {
+                    TextField("common_text.default", text: $profile.hostname.bound)
                         .multilineTextAlignment(.trailing)
                 }
 
@@ -115,9 +115,9 @@ struct NetworkEditView: View {
 //                        .multilineTextAlignment(.trailing)
 //                }
 
-                LabeledContent("MTU") {
+                LabeledContent("mtu") {
                     TextField(
-                        "Default",
+                        "common_text.default",
                         value: $profile.mtu,
                         formatter: NumberFormatter()
                     )
@@ -128,16 +128,16 @@ struct NetworkEditView: View {
             
             proxyCIDRsSettings
             
-            Section("VPN Portal") {
+            Section("vpn_portal_config") {
                 Toggle(
-                    "Enable",
+                    "common_text.enable",
                     isOn: $profile.enableVPNPortal
                 )
                 if profile.enableVPNPortal {
-                    LabeledContent("Address") {
+                    LabeledContent("vpn_portal_client_network") {
                         IPv4Field(ip: $profile.vpnPortalClientCIDR.ip, length: $profile.vpnPortalClientCIDR.length)
                     }
-                    LabeledContent("Listen Port") {
+                    LabeledContent("vpn_portal_listen_port") {
                         TextField(
                             "e.g. 22022",
                             value: $profile.vpnPortalListenPort,
@@ -149,49 +149,43 @@ struct NetworkEditView: View {
                 }
             }
             
-            Section("Listener URLs") {
-                ListEditor(newItemTitle: "Add Listener URL", items: $profile.listenerURLs, addItemFactory: { "" }, rowContent: {
+            Section("listener_urls") {
+                ListEditor(newItemTitle: "common_text.add_listener_url", items: $profile.listenerURLs, addItemFactory: { "" }, rowContent: {
                     TextField("e.g: tcp://1.1.1.1:11010", text: $0.text)
                         .fontDesign(.monospaced)
                 })
             }
             
             Section {
-                Toggle("Enable", isOn: $profile.enableRelayNetworkWhitelist)
+                Toggle("common_text.enable", isOn: $profile.enableRelayNetworkWhitelist)
                 if profile.enableRelayNetworkWhitelist {
-                    ListEditor(newItemTitle: "Add Network", items: $profile.relayNetworkWhitelist, addItemFactory: { "" }, rowContent: {
+                    ListEditor(newItemTitle: "common_text.add_network", items: $profile.relayNetworkWhitelist, addItemFactory: { "" }, rowContent: {
                         TextField("e.g.: net1", text: $0.text)
                             .fontDesign(.monospaced)
                     })
                 }
             } header: {
-                Text("Network Whitelist")
+                Text("relay_network_whitelist")
             } footer: {
-                Text("""
-                    Only forward traffic from the whitelist networks, supporting wildcard strings, multiple network names can be separated by spaces.
-                    If this parameter is empty, forwarding is disabled. By default, all networks are allowed.
-                    e.g.: '\\*' (all networks), 'def\\*' (networks with the prefix 'def'), 'net1 net2' (only allow net1 and net2)
-                    """)
+                Text("relay_network_whitelist_help")
             }
             
             Section {
-                Toggle("Enable", isOn: $profile.enableManualRoutes)
+                Toggle("common_text.enable", isOn: $profile.enableManualRoutes)
                 if profile.enableManualRoutes {
-                    ListEditor(newItemTitle: "Add Route", items: $profile.routes, addItemFactory: NetworkProfile.CIDR.init, rowContent: {
+                    ListEditor(newItemTitle: "common_text.add_route", items: $profile.routes, addItemFactory: NetworkProfile.CIDR.init, rowContent: {
                         IPv4Field(ip: $0.ip, length: $0.length)
                     })
                 }
             } header: {
-                Text("Manual Route")
+                Text("manual_routes")
             } footer: {
-                Text("""
-                    Assign routes cidr manually, will disable subnet proxy and wireguard routes propagated from peers. e.g.: 192.168.0.0/16
-                    """)
+                Text("manual_routes_help")
             }
             
-            Section("SOCKS5 Server") {
+            Section("socks5") {
                 Toggle(
-                    "Enable",
+                    "common_text.enable",
                     isOn: $profile.enableSocks5
                 )
                 if profile.enableSocks5 {
@@ -208,41 +202,38 @@ struct NetworkEditView: View {
             }
             
             Section {
-                ListEditor(newItemTitle: "Add Exit Node", items: $profile.exitNodes, addItemFactory: { "" }, rowContent: {
+                ListEditor(newItemTitle: "common_text.add_exit_node", items: $profile.exitNodes, addItemFactory: { "" }, rowContent: {
                     TextField("Node IP, e.g. 192.168.8.8", text: $0.text)
                         .fontDesign(.monospaced)
                 })
             } header: {
-                Text("Exit Nodes")
+                Text("exit_nodes")
             } footer: {
-                Text("""
-                    Exit nodes to forward all traffic to, a virtual ipv4 address, priority is determined by the order of the list
-                    """)
+                Text("exit_nodes_help")
             }
             
             Section {
-                ListEditor(newItemTitle: "Add Map Listener", items: $profile.mappedListeners, addItemFactory: { "" }, rowContent: {
+                ListEditor(newItemTitle: "common_text.add_map_listener", items: $profile.mappedListeners, addItemFactory: { "" }, rowContent: {
                     TextField("e.g.: tcp://123.123.123.123:11223", text: $0.text)
                         .fontDesign(.monospaced)
                 })
             } header: {
-                Text("Map Listeners")
+                Text("mapped_listeners")
             } footer: {
-                Text("""
-                    Manually specify the public address of the listener, other nodes can use this address to connect to this node.
-                    e.g.: tcp://123.123.123.123:11223, can specify multiple.
-                    """)
+                Text("mapped_listeners_help")
             }
 
-            Section("Feature") {
+            Section("flags_switch") {
                 ForEach(NetworkProfile.boolFlags) { flag in
                     Toggle(isOn: Binding<Bool>(
                         get: { $profile.wrappedValue[keyPath: flag.keyPath] },
                         set: { $profile.wrappedValue[keyPath: flag.keyPath] = $0 }
                     )) {
-                        Text(flag.label)
+                        Text(LocalizedStringKey(flag.label))
                         if let help = flag.help {
-                            Text(help)
+                            Text(LocalizedStringKey(help))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
                     }
                 }
@@ -256,13 +247,13 @@ struct NetworkEditView: View {
 
     var portForwardsSettings: some View {
         Form {
-            ListEditor(newItemTitle: "Add Port Forward", items: $profile.portForwards, addItemFactory: NetworkProfile.PortForwardSetting.init, rowContent: { $forward in
+            ListEditor(newItemTitle: "common_text.add_port_forward", items: $profile.portForwards, addItemFactory: NetworkProfile.PortForwardSetting.init, rowContent: { $forward in
                 VStack(spacing: 8) {
                     HStack {
-                        Text("Protocol:")
+                        Text("tunnel_proto")
                             .foregroundStyle(.secondary)
                         Spacer()
-                        Picker("Protocol", selection: $forward.proto) {
+                        Picker("tunnel_proto", selection: $forward.proto) {
                             Text("TCP").tag("tcp")
                             Text("UDP").tag("udp")
                         }
@@ -270,7 +261,7 @@ struct NetworkEditView: View {
                         .frame(width: 160)
                     }
                     HStack {
-                        TextField("Bind Address", text: $forward.bindAddr)
+                        TextField("port_forwards_bind_addr", text: $forward.bindAddr)
                         Text(":")
                         TextField(
                             "Port",
@@ -287,7 +278,7 @@ struct NetworkEditView: View {
                     .foregroundColor(.secondary)
                     .font(.caption)
                     HStack {
-                        TextField("Destination Address", text: $forward.destAddr)
+                        TextField("port_forwards_dst_addr", text: $forward.destAddr)
                         Text(":")
                         TextField(
                             "Port",
@@ -305,8 +296,8 @@ struct NetworkEditView: View {
     }
     
     var proxyCIDRsSettings: some View {
-        Section("Proxy CIDRs") {
-            ListEditor(newItemTitle: "Add Proxy CIDR", items: $profile.proxyCIDRs, addItemFactory: {
+        Section("common_text.proxy_cidr") {
+            ListEditor(newItemTitle: "common_text.add_proxy_cidr", items: $profile.proxyCIDRs, addItemFactory: {
                 NetworkProfile.ProxyCIDR(cidr: "0.0.0.0", enableMapping: false, mappedCIDR: "0.0.0.0", length: "0")
             }, rowContent: { proxyCIDR in
                 HStack(spacing: 12) {
@@ -342,13 +333,13 @@ struct NetworkEditView: View {
             Group {
                 if let proxyCIDR = Binding($editingProxyCIDR) {
                     Form {
-                        Section("Proxy CIDR") {
+                        Section("common_text.proxy_cidr") {
                             LabeledContent("CIDR") {
                                 IPv4Field(ip: proxyCIDR.cidr, length: proxyCIDR.length)
                             }
                         }
-                        Section("Mapped CIDR") {
-                            Toggle("Enable", isOn: proxyCIDR.enableMapping)
+                        Section("common_text.mapped_cidr") {
+                            Toggle("common_text.enable", isOn: proxyCIDR.enableMapping)
                             if proxyCIDR.enableMapping.wrappedValue {
                                 LabeledContent("CIDR") {
                                     IPv4Field(ip: proxyCIDR.mappedCIDR, length: proxyCIDR.length, disabledLengthEdit: true)
@@ -358,7 +349,7 @@ struct NetworkEditView: View {
                     }
                 }
             }
-            .navigationTitle("Edit Proxy CIDR")
+            .navigationTitle("common_text.edit_proxy_cidr")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 Button {
