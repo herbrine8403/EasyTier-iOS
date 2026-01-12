@@ -5,83 +5,15 @@ import Foundation
 let appName = "site.yinmo.easytier.tunnel"
 let appGroupID = "group.site.yinmo.easytier"
 let magicDNSIP = "100.100.100.101"
-let magicDNSCIDR = "100.100.100.101/32"
+let magicDNSCIDR = RunningIPv4CIDR(from: "100.100.100.101/32")!
+
+let logger = Logger(subsystem: appName, category: "swift")
 
 class PacketTunnelProvider: NEPacketTunnelProvider {
     // Hold a weak reference to the current provider for C callback bridging
     private static weak var current: PacketTunnelProvider?
 
-    private let logger = Logger(subsystem: appName, category: "swift")
     private var lastOptions: [String: NSObject]?
-    
-    private func tunnelFileDescriptor() -> Int32? {
-        logger.warning("tunnelFileDescriptor() use fallback")
-        var ctlInfo = ctl_info()
-        withUnsafeMutablePointer(to: &ctlInfo.ctl_name) {
-            $0.withMemoryRebound(to: CChar.self, capacity: MemoryLayout.size(ofValue: $0.pointee)) {
-                _ = strcpy($0, "com.apple.net.utun_control")
-            }
-        }
-        for fd: Int32 in 0...1024 {
-            var addr = sockaddr_ctl()
-            var ret: Int32 = -1
-            var len = socklen_t(MemoryLayout.size(ofValue: addr))
-            withUnsafeMutablePointer(to: &addr) {
-                $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
-                    ret = getpeername(fd, $0, &len)
-                }
-            }
-            if ret != 0 || addr.sc_family != AF_SYSTEM {
-                continue
-            }
-            if ctlInfo.ctl_id == 0 {
-                ret = ioctl(fd, CTLIOCGINFO, &ctlInfo)
-                if ret != 0 {
-                    continue
-                }
-            }
-            if addr.sc_id == ctlInfo.ctl_id {
-                logger.warning("tunnelFileDescriptor() found fd: \(fd, privacy: .public)")
-                return fd
-            }
-        }
-        return nil
-    }
-    
-    private func initRustLogger(level: String?) {
-        let filename = "easytier.log"
-        let allowedLevels = Set(["trace", "debug", "info", "warn", "error"])
-        let finalLevel = level.flatMap { allowedLevels.contains($0) ? $0 : nil } ?? "trace"
-        
-        guard var containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupID) else {
-            logger.error("initRustLogger() failed: App Group container not found")
-            return
-        }
-        containerURL.append(component: filename)
-        let path = containerURL.path(percentEncoded: false)
-        logger.warning("initRustLogger() write to: \(path)")
-        
-        var errPtr: UnsafePointer<CChar>? = nil
-        let ret = path.withCString { pathPtr in
-            finalLevel.withCString { levelPtr in
-                return init_logger(pathPtr, levelPtr, &errPtr)
-            }
-        }
-        if ret != 0 {
-            let err = extractRustString(errPtr)
-            logger.error("initRustLogger() failed to init: \(err ?? "Unknown", privacy: .public)")
-        }
-    }
-    
-    private func extractRustString(_ strPtr: UnsafePointer<CChar>?) -> String? {
-        guard let strPtr else {
-            logger.error("extractRustString(): nullptr")
-            return nil
-        }
-        let str = String(cString: strPtr)
-        free_string(strPtr)
-        return str
-    }
     
     private func handleRustStop() {
         // Called from FFI callback on an arbitrary thread
@@ -115,25 +47,6 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         postDarwinNotification("\(appName).error")
     }
     
-    private func cidrToSubnetMask(_ cidr: Int) -> String? {
-        guard cidr >= 0 && cidr <= 32 else { return nil }
-        
-        let mask: UInt32 = cidr == 0 ? 0 : UInt32.max << (32 - cidr)
-        
-        let octet1 = (mask >> 24) & 0xFF
-        let octet2 = (mask >> 16) & 0xFF
-        let octet3 = (mask >> 8) & 0xFF
-        let octet4 = mask & 0xFF
-        
-        return "\(octet1).\(octet2).\(octet3).\(octet4)"
-    }
-    
-    private func ipv4MaskedSubnet(_ cidr: RunningIPv4CIDR) -> String {
-        let mask: UInt32 = cidr.networkLength == 0 ? 0 : UInt32.max << (32 - cidr.networkLength)
-        let subnet = RunningIPv4Addr(addr: cidr.address.addr & mask)
-        return subnet.description
-    }
-    
     private func prepareSettings(_ options: [String : NSObject]) -> NEPacketTunnelNetworkSettings {
         let settings = NEPacketTunnelNetworkSettings(tunnelRemoteAddress: "127.0.0.1")
         let runningInfo = fetchRunningInfo()
@@ -143,12 +56,11 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
         if let ipv4 = runningInfo?.myNodeInfo?.virtualIPv4,
            let mask = cidrToSubnetMask(ipv4.networkLength) {
-            logger.info("prepareSettings() ipv4 \(ipv4.address.description)/\(ipv4.networkLength)")
             let ipv4Settings = NEIPv4Settings(
                 addresses: [ipv4.address.description],
                 subnetMasks: [mask]
             )
-            let routes = buildIPv4Routes(from: runningInfo)
+            let routes = buildIPv4Routes(info: runningInfo, manual: options["routes"] as? NSArray)
             if routes.isEmpty {
                 logger.warning("prepareSettings() no ipv4 routes")
             } else {
@@ -157,15 +69,6 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             if !routes.isEmpty {
                 ipv4Settings.includedRoutes = routes
             }
-            settings.ipv4Settings = ipv4Settings
-        } else if let ipv4 = options["ipv4"] as? String,
-                  let ipv4CIDR = RunningIPv4CIDR(from: ipv4),
-                  let mask = cidrToSubnetMask(ipv4CIDR.networkLength) {
-            let ipv4Settings = NEIPv4Settings(
-                addresses: [ipv4CIDR.address.description],
-                subnetMasks: [mask]
-            )
-            ipv4Settings.includedRoutes = [.init(destinationAddress: ipv4MaskedSubnet(ipv4CIDR), subnetMask: mask)]
             settings.ipv4Settings = ipv4Settings
         }
 
@@ -184,83 +87,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         }
         
         settings.mtu = options["mtu"] as? NSNumber
+        logger.info("prepareSettings(): \(settings, privacy: .public)")
 
         return settings
-    }
-
-    private func fetchRunningInfo() -> RunningInfo? {
-        var infoPtr: UnsafePointer<CChar>? = nil
-        var errPtr: UnsafePointer<CChar>? = nil
-        if get_running_info(&infoPtr, &errPtr) == 0, let info = extractRustString(infoPtr) {
-            guard let data = info.data(using: .utf8) else {
-                logger.error("fetchRunningInfo() invalid utf8 data")
-                return nil
-            }
-            do {
-                let decoded = try JSONDecoder().decode(RunningInfo.self, from: data)
-                logger.info("fetchRunningInfo() routes: \(decoded.routes.count)")
-                return decoded
-            } catch {
-                logger.error("fetchRunningInfo() json decode failed: \(error, privacy: .public)")
-            }
-        } else if let err = extractRustString(errPtr) {
-            logger.error("fetchRunningInfo() failed: \(err, privacy: .public)")
-        }
-        return nil
-    }
-
-    private func buildIPv4Routes(from info: RunningInfo?) -> [NEIPv4Route] {
-        guard let info else { return [] }
-        var cidrs = Set<String>()
-        for route in info.routes {
-            for cidr in route.proxyCIDRs {
-                if let normalized = normalizeCIDR(cidr) {
-                    cidrs.insert(normalized)
-                }
-            }
-        }
-        if let ipv4 = info.myNodeInfo?.virtualIPv4 {
-            cidrs.insert("\(ipv4MaskedSubnet(ipv4))/\(ipv4.networkLength)")
-        }
-        if let dns = buildDNSServers(from: info, options: nil),
-           dns.contains(magicDNSIP) {
-            cidrs.insert(magicDNSCIDR)
-        }
-        if cidrs.isEmpty {
-            logger.warning("buildIPv4Routes() no proxy cidrs")
-        }
-        return cidrs.compactMap { cidr in
-            let parts = cidr.split(separator: "/")
-            guard parts.count == 2, let maskLen = Int(parts[1]),
-                  let mask = cidrToSubnetMask(maskLen) else {
-                logger.warning("buildIPv4Routes() invalid cidr: \(cidr)")
-                return nil
-            }
-            return NEIPv4Route(destinationAddress: String(parts[0]), subnetMask: mask)
-        }
-    }
-
-    private func buildDNSServers(from info: RunningInfo?, options: [String: NSObject]?) -> [String]? {
-        if let dns = options?["dns"] as? String, !dns.isEmpty {
-            logger.info("buildDNSServers() use options dns: \(dns)")
-            return [dns]
-        }
-        guard let info else { return nil }
-        let hasMagicDNSRoute = info.routes.contains { route in
-            route.proxyCIDRs.contains { normalizeCIDR($0) == magicDNSCIDR }
-        }
-        if hasMagicDNSRoute {
-            logger.info("buildDNSServers() enable magic dns")
-        }
-        return hasMagicDNSRoute ? [magicDNSIP] : nil
-    }
-
-    private func normalizeCIDR(_ cidr: String) -> String? {
-        if cidr.contains("/") {
-            return cidr
-        }
-        guard !cidr.isEmpty else { return nil }
-        return "\(cidr)/32"
     }
 
     private func handleRunningInfoChanged() {
@@ -274,13 +103,13 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             
             self.setTunnelNetworkSettings(prepareSettings(options)) { [weak self] error in
                 if let error {
-                    self?.logger.error("handleRunningInfoChanged() failed to setTunnelNetworkSettings: \(error, privacy: .public)")
+                    logger.error("handleRunningInfoChanged() failed to setTunnelNetworkSettings: \(error, privacy: .public)")
                     self?.notifyHostAppError(error.localizedDescription)
                     return
                 }
-                let tunFd = self?.packetFlow.value(forKeyPath: "socket.fileDescriptor") as? Int32 ?? self?.tunnelFileDescriptor()
+                let tunFd = self?.packetFlow.value(forKeyPath: "socket.fileDescriptor") as? Int32 ?? tunnelFileDescriptor()
                 guard let tunFd else {
-                    self?.logger.error("handleRunningInfoChanged() no available tun fd")
+                    logger.error("handleRunningInfoChanged() no available tun fd")
                     self?.notifyHostAppError("no available tun fd")
                     return
                 }
@@ -288,8 +117,8 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                     var errPtr: UnsafePointer<CChar>? = nil
                     let ret = set_tun_fd(tunFd, &errPtr)
                     guard ret == 0 else {
-                        let err = self?.extractRustString(errPtr)
-                        self?.logger.error("handleRunningInfoChanged() failed to set tun fd to \(tunFd): \(err, privacy: .public)")
+                        let err = extractRustString(errPtr)
+                        logger.error("handleRunningInfoChanged() failed to set tun fd to \(tunFd): \(err, privacy: .public)")
                         self?.notifyHostAppError(err ?? "Unknown")
                         return
                     }
@@ -359,14 +188,14 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
         self.setTunnelNetworkSettings(prepareSettings(options)) { [weak self] error in
             if let error {
-                self?.logger.error("startTunnel() failed to setTunnelNetworkSettings: \(error, privacy: .public)")
+                logger.error("startTunnel() failed to setTunnelNetworkSettings: \(error, privacy: .public)")
                 self?.notifyHostAppError(error.localizedDescription)
                 completionHandler(error)
                 return
             }
-            let tunFd = self?.packetFlow.value(forKeyPath: "socket.fileDescriptor") as? Int32 ?? self?.tunnelFileDescriptor()
+            let tunFd = self?.packetFlow.value(forKeyPath: "socket.fileDescriptor") as? Int32 ?? tunnelFileDescriptor()
             guard let tunFd else {
-                self?.logger.error("startTunnel() no available tun fd")
+                logger.error("startTunnel() no available tun fd")
                 self?.notifyHostAppError("no available tun fd")
                 completionHandler("no available tun fd")
                 return
@@ -375,8 +204,8 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 var errPtr: UnsafePointer<CChar>? = nil
                 let ret = set_tun_fd(tunFd, &errPtr)
                 guard ret == 0 else {
-                    let err = self?.extractRustString(errPtr)
-                    self?.logger.error("startTunnel() failed to set tun fd to \(tunFd): \(err, privacy: .public)")
+                    let err = extractRustString(errPtr)
+                    logger.error("startTunnel() failed to set tun fd to \(tunFd): \(err, privacy: .public)")
                     self?.notifyHostAppError(err ?? "Unknown")
                     completionHandler(err)
                     return
@@ -422,80 +251,3 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 }
 
 extension String: @retroactive Error {}
-
-private struct RunningInfo: Decodable {
-    var myNodeInfo: RunningNodeInfo?
-    var routes: [RunningRoute]
-
-    enum CodingKeys: String, CodingKey {
-        case myNodeInfo = "my_node_info"
-        case routes
-    }
-}
-
-private struct RunningNodeInfo: Decodable {
-    var virtualIPv4: RunningIPv4CIDR?
-
-    enum CodingKeys: String, CodingKey {
-        case virtualIPv4 = "virtual_ipv4"
-    }
-}
-
-private struct RunningRoute: Decodable {
-    var proxyCIDRs: [String]
-
-    enum CodingKeys: String, CodingKey {
-        case proxyCIDRs = "proxy_cidrs"
-    }
-}
-
-private struct RunningIPv4CIDR: Decodable {
-    var address: RunningIPv4Addr
-    var networkLength: Int
-
-    init?(from string: String) {
-        // Expect CIDR notation like "192.168.1.10/24"
-        let parts = string.split(separator: "/")
-        guard parts.count == 2,
-              let addr = RunningIPv4Addr(from: String(parts[0])),
-              let length = Int(parts[1]),
-              (0...32).contains(length) else {
-            return nil
-        }
-        self.address = addr
-        self.networkLength = length
-    }
-
-    enum CodingKeys: String, CodingKey {
-        case address
-        case networkLength = "network_length"
-    }
-}
-
-private struct RunningIPv4Addr: Decodable {
-    var addr: UInt32
-    
-    init(addr: UInt32) {
-        self.addr = addr
-    }
-
-    init?(from string: String) {
-        // Expect dotted-quad IPv4, e.g., "192.168.1.10"
-        let parts = string.split(separator: ".")
-        guard parts.count == 4 else { return nil }
-        var bytes = [UInt32]()
-        bytes.reserveCapacity(4)
-        for p in parts {
-            guard let val = UInt32(p), val <= 255 else { return nil }
-            bytes.append(val)
-        }
-        // Pack into network-order (big-endian) 32-bit integer
-        self.addr = (bytes[0] << 24) | (bytes[1] << 16) | (bytes[2] << 8) | bytes[3]
-    }
-
-    var description: String {
-        let ip = addr
-        return "\((ip >> 24) & 0xFF).\((ip >> 16) & 0xFF).\((ip >> 8) & 0xFF).\(ip & 0xFF)"
-    }
-}
-

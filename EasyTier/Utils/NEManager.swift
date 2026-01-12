@@ -158,6 +158,9 @@ class NEManager: NEManagerProtocol {
         if let logLevel = UserDefaults.standard.string(forKey: "logLevel") {
             options["logLevel"] = logLevel as NSString
         }
+        if let routes = config.routes {
+            options["routes"] = NSArray(array: routes.map { $0 as NSString })
+        }
         do {
             try manager.connection.startVPNTunnel(options: options)
         } catch {
