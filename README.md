@@ -17,7 +17,7 @@ This is an iOS client for EasyTier VPN. It provides a user-friendly interface to
 
 ### Installation
 
-Not available yet.
+Not available yet. You can join our [TestFlight](https://testflight.apple.com/join/YWnDyJfM) for testing.
 
 ![Download on the App Store](./Assets/download-on-the-app-store.svg)
 
