@@ -92,7 +92,7 @@ func fetchRunningInfo() -> RunningInfo? {
     return nil
 }
 
-func buildIPv4Routes(info: RunningInfo?, manual: NSArray?) -> [NEIPv4Route] {
+func buildIPv4Routes(info: RunningInfo?, options: [String : NSObject]) -> [NEIPv4Route] {
     guard let info else { return [] }
     var cidrs = Set<RunningIPv4CIDR>()
     for route in info.routes {
@@ -102,13 +102,16 @@ func buildIPv4Routes(info: RunningInfo?, manual: NSArray?) -> [NEIPv4Route] {
             }
         }
     }
-    if let manual {
+    if let manual = options["routes"] as? NSArray {
         logger.info("buildIPv4Routes() found manual routes: \(manual.count)")
         for route in manual {
             if let cidr = route as? String, let normalized = normalizeCIDR(cidr) {
                 cidrs.insert(normalized)
             }
         }
+    }
+    if let ipv4 = options["ipv4"] as? String, let cidr = RunningIPv4CIDR(from: ipv4) {
+        cidrs.insert(.init(address: ipv4MaskedSubnet(cidr), length: cidr.networkLength))
     }
     if let ipv4 = info.myNodeInfo?.virtualIPv4 {
         cidrs.insert(.init(address: ipv4MaskedSubnet(ipv4), length: ipv4.networkLength))

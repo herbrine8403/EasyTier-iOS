@@ -432,7 +432,7 @@ struct TrafficItem: View {
             let currentTime = Date()
             let interval = currentTime.timeIntervalSince(lastTime)
             self.lastTime = currentTime
-            diff = Double(newValue - oldValue) / interval
+            diff = max(Double(newValue - oldValue) / interval, 0)
         }
     }
 }

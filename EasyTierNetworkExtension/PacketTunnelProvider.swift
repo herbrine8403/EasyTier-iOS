@@ -54,23 +54,31 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             logger.warning("prepareSettings() running info is nil")
         }
 
+        let ipv4Settings: NEIPv4Settings
         if let ipv4 = runningInfo?.myNodeInfo?.virtualIPv4,
            let mask = cidrToSubnetMask(ipv4.networkLength) {
-            let ipv4Settings = NEIPv4Settings(
+            ipv4Settings = NEIPv4Settings(
                 addresses: [ipv4.address.description],
                 subnetMasks: [mask]
             )
-            let routes = buildIPv4Routes(info: runningInfo, manual: options["routes"] as? NSArray)
-            if routes.isEmpty {
-                logger.warning("prepareSettings() no ipv4 routes")
-            } else {
-                logger.info("prepareSettings() ipv4 routes: \(routes.count)")
-            }
-            if !routes.isEmpty {
-                ipv4Settings.includedRoutes = routes
-            }
-            settings.ipv4Settings = ipv4Settings
+        } else if let ipv4 = options["ipv4"] as? String,
+                  let cidr = RunningIPv4CIDR(from: ipv4),
+                  let mask = cidrToSubnetMask(cidr.networkLength) {
+            ipv4Settings = NEIPv4Settings(
+                addresses: [cidr.address.description],
+                subnetMasks: [mask]
+            )
+        } else {
+            ipv4Settings = NEIPv4Settings()
         }
+        let routes = buildIPv4Routes(info: runningInfo, options: options)
+        if !routes.isEmpty {
+            logger.info("prepareSettings() ipv4 routes: \(routes.count)")
+            ipv4Settings.includedRoutes = routes
+        } else {
+            logger.warning("prepareSettings() no ipv4 routes")
+        }
+        settings.ipv4Settings = ipv4Settings
 
         if let ipv6CIDR = (options["ipv6"] as? String)?.split(separator: "/"), ipv6CIDR.count == 2 {
             let ip = ipv6CIDR[0], cidrStr = ipv6CIDR[1]
