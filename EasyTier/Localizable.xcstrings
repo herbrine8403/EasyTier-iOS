@@ -191,7 +191,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "CIDR"
+            "value" : "网段"
           }
         }
       }
@@ -535,6 +535,54 @@
     "Copyright (C) 2026  Chenx Dust and Yin Mo\n\nThis program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.\n\nThis program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.\n\nYou should have received a copy of the GNU General Public License along with this program. If not, see <http://www.gnu.org/licenses/>." : {
       "shouldTranslate" : false
     },
+    "cost" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cost"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代价"
+          }
+        }
+      }
+    },
+    "cost_latency_first" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cost (Latency First)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代价（延迟优先）"
+          }
+        }
+      }
+    },
+    "default_conn_id" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default Connection ID"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "默认连接 ID"
+          }
+        }
+      }
+    },
     "details" : {
       "localizations" : {
         "en" : {
@@ -595,6 +643,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "DHCP"
+          }
+        }
+      }
+    },
+    "directly_connected_conns" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Directly Connected Connections"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "直连连接"
           }
         }
       }
@@ -1200,6 +1264,22 @@
         }
       }
     },
+    "feature_flag" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feature Flag"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "特性标志"
+          }
+        }
+      }
+    },
     "features" : {
       "localizations" : {
         "en" : {
@@ -1299,6 +1379,22 @@
         }
       }
     },
+    "inst_id" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instance ID"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实例 ID"
+          }
+        }
+      }
+    },
     "interface_ipv4s" : {
       "localizations" : {
         "en" : {
@@ -1343,6 +1439,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "IP 信息"
+          }
+        }
+      }
+    },
+    "ipv4_addr" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IPv4 Address"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IPv4 地址"
+          }
+        }
+      }
+    },
+    "ipv6_addr" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IPv6 Address"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IPv6 地址"
           }
         }
       }
@@ -1859,6 +1987,38 @@
         }
       }
     },
+    "next_hop_peer_id" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next Hop Peer ID"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下一跳节点 ID"
+          }
+        }
+      }
+    },
+    "next_hop_peer_id_latency_first" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next Hop Peer ID (Latency First)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下一跳节点 ID（延迟优先）"
+          }
+        }
+      }
+    },
     "no_connection_details_available" : {
       "localizations" : {
         "en" : {
@@ -2099,6 +2259,38 @@
         }
       }
     },
+    "path_latency" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Path Latency"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "路径延迟"
+          }
+        }
+      }
+    },
+    "path_latency_latency_first" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Path Latency (Latency First)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "路径延迟（延迟优先）"
+          }
+        }
+      }
+    },
     "peer" : {
       "localizations" : {
         "en" : {
@@ -2319,6 +2511,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "代理："
+          }
+        }
+      }
+    },
+    "proxy_cidrs" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proxy CIDRs"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代理网段"
           }
         }
       }
@@ -2710,22 +2918,6 @@
         }
       }
     },
-    "status.version" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Version"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "版本"
-          }
-        }
-      }
-    },
     "stop_network" : {
       "localizations" : {
         "en" : {
@@ -3058,6 +3250,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用用户态 TCP/IP 协议栈，避免操作系统防火墙问题导致无法子网代理 / KCP 代理。"
+          }
+        }
+      }
+    },
+    "version" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本"
           }
         }
       }

@@ -638,6 +638,48 @@ struct PeerConnDetailSheet: View {
                 Section("peer") {
                     LabeledContent("hostname", value: pair.route.hostname)
                     LabeledContent("peer_id", value: String(pair.route.peerId))
+                    if let ipv4 = pair.route.ipv4Addr {
+                        LabeledContent("ipv4_addr", value: ipv4.description)
+                    }
+                    if let ipv6 = pair.route.ipv6Addr {
+                        LabeledContent("ipv6_addr", value: ipv6.description)
+                    }
+                    LabeledContent("inst_id", value: String(pair.route.instId))
+                    LabeledContent("version", value: String(pair.route.version))
+                    LabeledContent("next_hop_peer_id", value: String(pair.route.nextHopPeerId))
+                    LabeledContent("cost", value: String(pair.route.cost))
+                    LabeledContent("path_latency", value: latencyValueString(pair.route.pathLatency))
+                    if let nextHopLatencyFirst = pair.route.nextHopPeerIdLatencyFirst {
+                        LabeledContent("next_hop_peer_id_latency_first", value: String(nextHopLatencyFirst))
+                    }
+                    if let costLatencyFirst = pair.route.costLatencyFirst {
+                        LabeledContent("cost_latency_first", value: String(costLatencyFirst))
+                    }
+                    if let pathLatencyLatencyFirst = pair.route.pathLatencyLatencyFirst {
+                        LabeledContent("path_latency_latency_first", value: latencyValueString(pathLatencyLatencyFirst))
+                    }
+                    if let featureFlags = pair.route.featureFlag {
+                        LabeledContent("feature_flag", value: featureFlagString(featureFlags))
+                    }
+                    if let peerInfo = pair.peer {
+                        if let defaultConnId = peerInfo.defaultConnId {
+                            LabeledContent("default_conn_id", value: uuidString(defaultConnId))
+                        }
+                        if !peerInfo.directlyConnectedConns.isEmpty {
+                            LabeledContent(
+                                "directly_connected_conns",
+                                value: peerInfo.directlyConnectedConns.map(uuidString).joined(separator: "\n")
+                            )
+                        }
+                    }
+                }
+                
+                if !pair.route.proxyCIDRs.isEmpty {
+                    Section("proxy_cidrs") {
+                        ForEach(pair.route.proxyCIDRs, id: \.hashValue) {
+                            Text($0)
+                        }
+                    }
                 }
 
                 if conns.isEmpty {
@@ -648,9 +690,9 @@ struct PeerConnDetailSheet: View {
                 } else {
                     ForEach(conns, id: \.connId) { conn in
                         Section("connection_\(conn.connId)") {
+                            LabeledContent("peer_id", value: String(conn.peerId))
                             LabeledContent("role", value: conn.isClient ? "Client" : "Server")
                             LabeledContent("loss_rate", value: percentString(conn.lossRate))
-                            LabeledContent("network", value: conn.networkName ?? String(localized: "not_available"))
                             LabeledContent("closed", value: triState(conn.isClosed))
 
                             LabeledContent("features", value: conn.features.isEmpty ? "None" : conn.features.joined(separator: ", "))
@@ -688,6 +730,10 @@ struct PeerConnDetailSheet: View {
         String(format: "%.1f ms", Double(us) / 1000.0)
     }
 
+    private func latencyValueString(_ value: Int) -> String {
+        "\(value) ms"
+    }
+
     private func percentString(_ value: Double) -> String {
         String(format: "%.2f%%", value * 100)
     }
@@ -695,6 +741,20 @@ struct PeerConnDetailSheet: View {
     private func triState(_ value: Bool?) -> String {
         guard let value else { return "event.Unknown" }
         return value ? "Yes" : "No"
+    }
+
+    private func uuidString(_ value: NetworkStatus.UUID) -> String {
+        String(format: "%08x-%08x-%08x-%08x", value.part1, value.part2, value.part3, value.part4)
+    }
+
+    private func featureFlagString(_ flags: NetworkStatus.PeerFeatureFlag) -> String {
+        var enabled: [String] = []
+        if flags.isPublicServer { enabled.append("is_public_server") }
+        if flags.avoidRelayData { enabled.append("avoid_relay_data") }
+        if flags.kcpInput { enabled.append("kcp_input") }
+        if flags.noRelayKcp { enabled.append("no_relay_kcp") }
+        if flags.supportConnListSync { enabled.append("support_conn_list_sync") }
+        return enabled.isEmpty ? "None" : enabled.joined(separator: ", ")
     }
 }
 
@@ -707,7 +767,7 @@ struct NodeInfoSheet: View {
                 if let nodeInfo {
                     Section("general") {
                         LabeledContent("hostname", value: nodeInfo.hostname)
-                        LabeledContent("status.version", value: nodeInfo.version)
+                        LabeledContent("version", value: nodeInfo.version)
                         if let virtualIPv4 = nodeInfo.virtualIPv4 {
                             LabeledContent("virtual_ipv4", value: virtualIPv4.description)
                         }

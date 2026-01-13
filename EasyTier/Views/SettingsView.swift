@@ -80,7 +80,7 @@ struct SettingsView<Manager: NEManagerProtocol>: View {
                 LabeledContent("app") {
                     Text("EasyTier")
                 }
-                LabeledContent("status.version") {
+                LabeledContent("version") {
                     Text(appVersion)
                 }
                 Link("about.homepage", destination: URL(string: "https://github.com/EasyTier/EasyTier-iOS")!)
