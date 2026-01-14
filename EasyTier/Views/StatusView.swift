@@ -230,6 +230,14 @@ struct PeerRowView: View {
         pair.route.featureFlag?.isPublicServer ?? false
     }
 
+    var latency: Double? {
+        let latencies = pair.peer?.conns.compactMap {
+            $0.stats?.latencyUs
+        }
+        guard let latencies else { return nil }
+        return Double(latencies.reduce(0, +)) / Double(latencies.count)
+    }
+
     var lossRate: Double? {
         let lossRates = pair.peer?.conns.compactMap {
             $0.lossRate
@@ -260,7 +268,6 @@ struct PeerRowView: View {
                     if let text = ({
                         var infoLine: [String] = []
                         infoLine.append("ID: \(String(pair.route.peerId))")
-                        infoLine.append(pair.route.cost == 1 ? "P2P" : "Relay \(pair.route.cost)")
                         if let conns = pair.peer?.conns, !conns.isEmpty {
                             let types = conns.compactMap(\.tunnel?.tunnelType);
                             if !types.isEmpty {
@@ -297,34 +304,45 @@ struct PeerRowView: View {
 
             // Metrics
             VStack(alignment: .trailing, spacing: 4) {
-                HStack(spacing: 4) {
-                    Image(systemName: "bolt.fill")
-                        .font(.caption2)
-                    Text("\(pair.route.pathLatency) ms")
-                        .font(.callout)
-                        .fontWeight(.semibold)
-                        .monospacedDigit()
+                if let latency {
+                    HStack(spacing: 4) {
+                        Image(systemName: "bolt.fill")
+                            .font(.caption2)
+                        Text("\(String(format: "%.1f", latency / 1000.0)) ms")
+                            .font(.callout)
+                            .fontWeight(.semibold)
+                            .monospacedDigit()
+                    }
+                    .foregroundStyle(latencyColor(latency))
                 }
-                .foregroundStyle(latencyColor(pair.route.pathLatency))
-
-                if let lossRate {
-                    let lossPercent = String(format: "%.0f", lossRate * 100)
-                    Text("loss_rate_format_\(lossPercent)")
+                
+                HStack {
+                    Text(pair.route.cost == 1 ? "p2p" : "relay_\(pair.route.cost)")
                         .font(.caption2)
-                        .foregroundStyle(lossRateColor(lossRate))
+                        .foregroundStyle(pair.route.cost == 1 ? .blue : .purple)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
-                        .background(lossRateColor(lossRate).opacity(0.1))
+                        .background((pair.route.cost == 1 ? Color.blue : Color.purple).opacity(0.1))
                         .clipShape(Capsule())
+                    if let lossRate {
+                        let lossPercent = String(format: "%.0f", lossRate * 100)
+                        Text("loss_rate_format_\(lossPercent)")
+                            .font(.caption2)
+                            .foregroundStyle(lossRateColor(lossRate))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(lossRateColor(lossRate).opacity(0.1))
+                            .clipShape(Capsule())
+                    }
                 }
             }
         }
     }
 
-    func latencyColor(_ ms: Int) -> Color {
-        switch ms {
-        case 0..<100: return .green
-        case 100..<200: return .orange
+    func latencyColor(_ us: Double) -> Color {
+        switch us {
+        case 0..<100_000: return .green
+        case 100_000..<200_000: return .orange
         default: return .red
         }
     }

@@ -13,6 +13,9 @@
     "/" : {
       "shouldTranslate" : false
     },
+    "%@ ms" : {
+      "shouldTranslate" : false
+    },
     "%@/%@" : {
       "localizations" : {
         "en" : {
@@ -23,9 +26,6 @@
         }
       },
       "shouldTranslate" : false
-    },
-    "%lld ms" : {
-
     },
     "0" : {
       "shouldTranslate" : false
@@ -1645,7 +1645,7 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "此处导出的日志为 Network Extension 的完整日志，仅能在运行时导出，应与“日志”标签页中导出的核心日志加以区分。"
           }
         }
@@ -1672,13 +1672,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Loss: %@%%"
+            "value" : "Loss %@%%"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "丢包率：%@%%"
+            "value" : "丢包 %@%%"
           }
         }
       }
@@ -2227,6 +2227,22 @@
         }
       }
     },
+    "p2p" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "P2P"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "直连"
+          }
+        }
+      }
+    },
     "p2p_only" : {
       "localizations" : {
         "en" : {
@@ -2623,6 +2639,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "公共服务器"
+          }
+        }
+      }
+    },
+    "relay_%lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Relay (%lld)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "中继（%lld）"
           }
         }
       }
