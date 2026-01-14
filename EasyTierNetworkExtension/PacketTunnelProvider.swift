@@ -1,9 +1,11 @@
 import os
 import NetworkExtension
+import Network
 import Foundation
 
 let appName = "site.yinmo.easytier.tunnel"
 let appGroupID = "group.site.yinmo.easytier"
+let debounceTime = 2.0
 
 enum ProviderCommand: String {
     case exportOSLog = "export_oslog"
@@ -25,8 +27,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     private var lastOptions: [String: NSObject] = [:]
     private let settingsUpdateQueue = DispatchQueue(label: "site.yinmo.easytier.tunnel.settings-update")
     private var isApplyingSettings = false
-    private var needReapplySettings = false
-    
+
     private func handleRustStop() {
         // Called from FFI callback on an arbitrary thread
         var msgPtr: UnsafePointer<CChar>? = nil
@@ -34,8 +35,8 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         let ret = get_latest_error_msg(&msgPtr, &errPtr)
         if ret == 0, let msg = extractRustString(msgPtr) {
             logger.error("handleRustStop(): \(msg, privacy: .public)")
-            // Inform host app and cancel the tunnel on main queue
-            DispatchQueue.main.async {
+            // Inform host app and cancel the tunnel on global queue
+            DispatchQueue.global().async {
                 self.notifyHostAppError(msg)
                 self.cancelTunnelWithError(msg)
             }
@@ -121,20 +122,19 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             guard let self else { return }
             if self.isApplyingSettings {
                 logger.info("enqueueSettingsUpdate(): update in progress, waiting")
-                self.needReapplySettings = true
                 return
             }
             self.isApplyingSettings = true
-            self.needReapplySettings = false
             logger.info("enqueueSettingsUpdate(): starting settings update")
-            DispatchQueue.main.async { [weak self] in
+            DispatchQueue.global().async { [weak self] in
                 self?.applyNetworkSettings()
             }
         }
     }
 
     private func applyNetworkSettings() {
-        let settings = prepareSettings(lastOptions)
+        Thread.sleep(forTimeInterval: debounceTime)
+        let settings = self.prepareSettings(self.lastOptions)
         self.reasserting = true
         logger.info("applyNetworkSettings(): applying settings")
         self.setTunnelNetworkSettings(settings) { [weak self] error in
@@ -143,44 +143,26 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             if let error {
                 logger.error("handleRunningInfoChanged() failed to setTunnelNetworkSettings: \(error, privacy: .public)")
                 self.notifyHostAppError(error.localizedDescription)
-                self.finishSettingsUpdate()
                 return
             }
-            self.finishSettingsUpdate()
-            logger.info("applyNetworkSettings(): settings applied")
-        }
-    }
-
-    private func finishSettingsUpdate() {
-        settingsUpdateQueue.async { [weak self] in
-            guard let self else { return }
-            self.isApplyingSettings = false
-            guard self.needReapplySettings else {
-                // only update tun fd when it is the last setting update
-                let tunFd = self.packetFlow.value(forKeyPath: "socket.fileDescriptor") as? Int32 ?? tunnelFileDescriptor()
-                if let tunFd {
-                    DispatchQueue.global(qos: .default).async { [weak self] in
-                        var errPtr: UnsafePointer<CChar>? = nil
-                        let ret = set_tun_fd(tunFd, &errPtr)
-                        guard ret == 0 else {
-                            let err = extractRustString(errPtr)
-                            logger.error("handleRunningInfoChanged() failed to set tun fd to \(tunFd): \(err, privacy: .public)")
-                            self?.notifyHostAppError(err ?? "Unknown")
-                            return
-                        }
-                    }
-                } else {
-                    logger.error("handleRunningInfoChanged() no available tun fd")
-                    notifyHostAppError("no available tun fd")
+            let tunFd = self.packetFlow.value(forKeyPath: "socket.fileDescriptor") as? Int32 ?? tunnelFileDescriptor()
+            if let tunFd {
+                var errPtr: UnsafePointer<CChar>? = nil
+                let ret = set_tun_fd(tunFd, &errPtr)
+                guard ret == 0 else {
+                    let err = extractRustString(errPtr)
+                    logger.error("handleRunningInfoChanged() failed to set tun fd to \(tunFd): \(err, privacy: .public)")
+                    self.notifyHostAppError(err ?? "Unknown")
+                    return
                 }
-                return
+            } else {
+                logger.error("handleRunningInfoChanged() no available tun fd")
+                notifyHostAppError("no available tun fd")
             }
-            self.needReapplySettings = false
-            self.isApplyingSettings = true
-            logger.info("finishSettingsUpdate(): reapplying settings")
-            DispatchQueue.main.async { [weak self] in
-                self?.applyNetworkSettings()
+            settingsUpdateQueue.async { [weak self] in
+                self?.isApplyingSettings = false
             }
+            logger.info("applyNetworkSettings(): settings applied")
         }
     }
 

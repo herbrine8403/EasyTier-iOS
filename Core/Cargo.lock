@@ -526,6 +526,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "clap_complete_nushell"
+version = "4.5.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "685bc86fd34b7467e0532a4f8435ab107960d69a243785ef0275e571b35b641a"
+dependencies = [
+ "clap",
+ "clap_complete",
+]
+
+[[package]]
 name = "clap_derive"
 version = "4.5.49"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -962,7 +972,7 @@ dependencies = [
 [[package]]
 name = "easytier"
 version = "2.5.0"
-source = "git+https://github.com/EasyTier/EasyTier.git?branch=main#b5907005403f83d608652284f224ceee20e1831a"
+source = "git+https://github.com/EasyTier/EasyTier.git?branch=main#f8b34e3c86abc5b2aa16da09a5f97b3973490a3c"
 dependencies = [
  "anyhow",
  "arc-swap",
@@ -983,6 +993,7 @@ dependencies = [
  "cidr",
  "clap",
  "clap_complete",
+ "clap_complete_nushell",
  "crossbeam",
  "dashmap",
  "dbus",

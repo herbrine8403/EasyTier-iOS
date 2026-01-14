@@ -31,7 +31,7 @@ func tunnelFileDescriptor() -> Int32? {
             }
         }
         if addr.sc_id == ctlInfo.ctl_id {
-            logger.warning("tunnelFileDescriptor() found fd: \(fd, privacy: .public)")
+            logger.info("tunnelFileDescriptor() found fd: \(fd, privacy: .public)")
             return fd
         }
     }
