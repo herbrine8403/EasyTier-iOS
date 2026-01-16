@@ -14,7 +14,7 @@
       "shouldTranslate" : false
     },
     "%@" : {
-
+      "shouldTranslate" : false
     },
     "%@ ms" : {
       "shouldTranslate" : false
@@ -115,6 +115,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "地址"
+          }
+        }
+      }
+    },
+    "advanced" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Advanced"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "高级"
+          }
+        }
+      }
+    },
+    "advanced_help" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Advanced routing settings. Modifying these settings may result in no network connection or cause system services to become unavailable. It is discouraged to make changes unless you fully understand the behavior of each option. [Reference](https://developer.apple.com/documentation/networkextension/routing-your-vpn-network-traffic#Exclude-some-traffic-from-a-personal-VPN-or-packet-tunnel-provider)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "高级路由设置，修改本设置有可能造成无网络连接、系统服务无法使用等问题。在未完全知晓选项行为时不建议修改。[参考文档](https://developer.apple.com/documentation/networkextension/routing-your-vpn-network-traffic#Exclude-some-traffic-from-a-personal-VPN-or-packet-tunnel-provider)"
           }
         }
       }
@@ -1187,6 +1219,22 @@
         }
       }
     },
+    "enforce_routes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enforce Routes"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "强制路由"
+          }
+        }
+      }
+    },
     "event_log" : {
       "localizations" : {
         "en" : {
@@ -1295,6 +1343,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "如：22022"
+          }
+        }
+      }
+    },
+    "exclude_apns" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exclude APNs"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "排除推送服务"
+          }
+        }
+      }
+    },
+    "exclude_cellular_services" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exclude Cellular Services"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "排除蜂窝服务"
+          }
+        }
+      }
+    },
+    "exclude_device_communication" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exclude Device Communication"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "排除设备通信"
+          }
+        }
+      }
+    },
+    "exclude_local_networks" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exclude Local Networks"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "排除本地网络请求"
           }
         }
       }
@@ -1474,6 +1586,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "主机名"
+          }
+        }
+      }
+    },
+    "include_all_networks" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Include All Networks"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "包含所有网络请求"
           }
         }
       }

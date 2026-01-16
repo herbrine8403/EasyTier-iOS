@@ -208,7 +208,6 @@ struct NetworkConfig: Codable {
     init(from profile: NetworkProfile, name: String) {
         // default profile for comparing
         let def = NetworkProfile(id: UUID())
-        let useRealDeviceNameAsDefault = UserDefaults.standard.object(forKey: "useRealDeviceNameAsDefault") as? Bool ?? true
         
         func takeIfChanged<T: Equatable>(_ current: T, _ original: T) -> T? {
             return current != original ? current : nil
@@ -217,7 +216,7 @@ struct NetworkConfig: Codable {
         self.instanceId = profile.id.uuidString.lowercased()
         if let hostname = profile.hostname, !hostname.isEmpty {
             self.hostname = hostname
-        } else if useRealDeviceNameAsDefault {
+        } else if UserDefaults.standard.bool(forKey: "useRealDeviceNameAsDefault") {
             self.hostname = Self.defaultDeviceName
         } else {
             self.hostname = nil

@@ -3,6 +3,8 @@ import SwiftUI
 import WidgetKit
 import NetworkExtension
 
+import EasyTierShared
+
 @main
 struct ControlWidgetsBundle: WidgetBundle {
     var body: some Widget {
@@ -61,7 +63,7 @@ struct ToggleVPNIntent: SetValueIntent {
         }
 
         if value {
-            try manager.connection.startVPNTunnel()
+            try await connectWithManager(manager)
         } else {
             manager.connection.stopVPNTunnel()
         }

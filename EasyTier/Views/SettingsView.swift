@@ -2,11 +2,20 @@ import SwiftUI
 import NetworkExtension
 import EasyTierShared
 
+let defaults = UserDefaults(suiteName: APP_GROUP_ID)
+
 struct SettingsView<Manager: NEManagerProtocol>: View {
+    
     @EnvironmentObject var manager: Manager
     @AppStorage("logLevel") var logLevel: LogLevel = .info
     @AppStorage("statusRefreshInterval") var statusRefreshInterval: Double = 1.0
     @AppStorage("useRealDeviceNameAsDefault") var useRealDeviceNameAsDefault: Bool = true
+    @AppStorage("includeAllNetworks", store: defaults) var includeAllNetworks: Bool = false
+    @AppStorage("excludeLocalNetworks", store: defaults) var excludeLocalNetworks: Bool = false
+    @AppStorage("excludeCellularServices", store: defaults) var excludeCellularServices: Bool = true
+    @AppStorage("excludeAPNs", store: defaults) var excludeAPNs: Bool = true
+    @AppStorage("excludeDeviceCommunication", store: defaults) var excludeDeviceCommunication: Bool = true
+    @AppStorage("enforceRoutes", store: defaults) var enforceRoutes: Bool = false
     @State var selectedPane: SettingsPane?
     @State private var exportURL: URL?
     @State private var isExportPresented = false
@@ -74,6 +83,19 @@ struct SettingsView<Manager: NEManagerProtocol>: View {
                 Text("logging")
             } footer: {
                 Text("logging_help")
+            }
+            
+            Section {
+                Toggle("include_all_networks", isOn: $includeAllNetworks)
+                Toggle("exclude_local_networks", isOn: $excludeLocalNetworks)
+                Toggle("exclude_cellular_services", isOn: $excludeCellularServices)
+                Toggle("exclude_apns", isOn: $excludeAPNs)
+                Toggle("exclude_device_communication", isOn: $excludeDeviceCommunication)
+                Toggle("enforce_routes", isOn: $enforceRoutes)
+            } header: {
+                Text("advanced")
+            } footer: {
+                Text("advanced_help")
             }
 
             Section("about.title") {

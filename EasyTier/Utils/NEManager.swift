@@ -223,11 +223,9 @@ class NEManager: NEManagerProtocol {
             Self.logger.error("connect() failed: manager is nil")
             return
         }
-        manager.isEnabled = true
-        try await manager.saveToPreferences()
 
         do {
-            try manager.connection.startVPNTunnel()
+            try await connectWithManager(manager, logger: Self.logger)
         } catch {
             Self.logger.error("connect() start vpn tunnel failed: \(String(describing: error))")
             throw error

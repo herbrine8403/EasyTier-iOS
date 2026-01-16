@@ -15,6 +15,7 @@
 		055836392F04D26700139811 /* EasyTierNetworkExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 0558362E2F04D26600139811 /* EasyTierNetworkExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		05B61F5C2F05056D00646DDC /* libeasytier_ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 05B61F5B2F05056D00646DDC /* libeasytier_ios.a */; };
 		05B6235C2F08098100646DDC /* TOMLKit in Frameworks */ = {isa = PBXBuildFile; productRef = 05B6235B2F08098100646DDC /* TOMLKit */; };
+		05CF11DA2F1A589D00E6EDF1 /* libEasyTierShared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0526D8422F17D98E00968CE2 /* libEasyTierShared.a */; };
 		7A59B81B2F1641100069728D /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7A59B81A2F1641100069728D /* WidgetKit.framework */; };
 		7A59B81D2F1641100069728D /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7A59B81C2F1641100069728D /* SwiftUI.framework */; };
 		7A59B82E2F1641110069728D /* ControlWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 7A59B8192F1641100069728D /* ControlWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -34,6 +35,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 0558362D2F04D26600139811;
 			remoteInfo = NetworkExtension;
+		};
+		05CF11DB2F1A589D00E6EDF1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 051C6A032F03AB0000AF29B1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0526D8412F17D98E00968CE2;
+			remoteInfo = EasyTierShared;
 		};
 		7A59B82C2F1641110069728D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -168,6 +176,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7A59B81D2F1641100069728D /* SwiftUI.framework in Frameworks */,
+				05CF11DA2F1A589D00E6EDF1 /* libEasyTierShared.a in Frameworks */,
 				7A59B81B2F1641100069728D /* WidgetKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -296,6 +305,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				05CF11DC2F1A589D00E6EDF1 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				7A59B81E2F1641100069728D /* ControlWidgets */,
@@ -445,6 +455,11 @@
 			isa = PBXTargetDependency;
 			target = 0558362D2F04D26600139811 /* EasyTierNetworkExtension */;
 			targetProxy = 055836372F04D26700139811 /* PBXContainerItemProxy */;
+		};
+		05CF11DC2F1A589D00E6EDF1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0526D8412F17D98E00968CE2 /* EasyTierShared */;
+			targetProxy = 05CF11DB2F1A589D00E6EDF1 /* PBXContainerItemProxy */;
 		};
 		7A59B82D2F1641110069728D /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -683,7 +698,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Y8RH943F65;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -700,7 +715,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Y8RH943F65;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -727,7 +742,7 @@
 				INFOPLIST_FILE = EasyTierNetworkExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = EasyTierNetworkExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -779,7 +794,7 @@
 				INFOPLIST_FILE = EasyTierNetworkExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = EasyTierNetworkExtension;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
