@@ -19,8 +19,9 @@ struct SettingsView<Manager: NEManagerProtocol>: View {
     @State var selectedPane: SettingsPane?
     @State private var exportURL: URL?
     @State private var isExportPresented = false
-    @State private var exportErrorMessage: TextItem?
+    @State private var settingsErrorMessage: TextItem?
     @State private var isExporting = false
+    @State private var isAlwaysOnUpdating = false
 
     enum SettingsPane: Hashable {
         case license
@@ -58,6 +59,11 @@ struct SettingsView<Manager: NEManagerProtocol>: View {
                     }
                 }
                 Toggle("use_device_name", isOn: $useRealDeviceNameAsDefault)
+                Toggle("always_on", isOn: $manager.isAlwaysOnEnabled)
+                    .disabled(manager.isLoading || isAlwaysOnUpdating)
+                    .onChange(of: manager.isAlwaysOnEnabled) { _, newValue in
+                        updateAlwaysOn(newValue)
+                    }
             }
 
             Section {
@@ -110,7 +116,7 @@ struct SettingsView<Manager: NEManagerProtocol>: View {
                 NavigationLink("about.license", value: SettingsPane.license)
             }
         }
-        .alert(item: $exportErrorMessage) { msg in
+        .alert(item: $settingsErrorMessage) { msg in
             Alert(title: Text("common.error"), message: Text(msg.text))
         }
         .sheet(isPresented: $isExportPresented) {
@@ -239,11 +245,29 @@ struct SettingsView<Manager: NEManagerProtocol>: View {
                 }
             } catch {
                 await MainActor.run {
-                    exportErrorMessage = .init(String(localized: "export_failed"))
+                    settingsErrorMessage = .init(String(localized: "export_failed"))
                 }
             }
             await MainActor.run {
                 isExporting = false
+            }
+        }
+    }
+
+    private func updateAlwaysOn(_ enabled: Bool) {
+        guard !isAlwaysOnUpdating else { return }
+        isAlwaysOnUpdating = true
+        Task {
+            do {
+                try await manager.setAlwaysOnEnabled(enabled)
+            } catch {
+                await MainActor.run {
+                    manager.isAlwaysOnEnabled = !enabled
+                    settingsErrorMessage = .init(String(localized: "always_on_failed"))
+                }
+            }
+            await MainActor.run {
+                isAlwaysOnUpdating = false
             }
         }
     }

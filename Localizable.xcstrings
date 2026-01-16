@@ -167,6 +167,38 @@
         }
       }
     },
+    "always_on" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Always On"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "始终开启"
+          }
+        }
+      }
+    },
+    "always_on_failed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to update Always On settings."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新开机自启设置失败。"
+          }
+        }
+      }
+    },
     "app" : {
       "localizations" : {
         "en" : {

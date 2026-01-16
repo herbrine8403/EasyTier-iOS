@@ -11,6 +11,7 @@ protocol NEManagerProtocol: ObservableObject {
     var status: NEVPNStatus { get }
     var connectedDate: Date? { get }
     var isLoading: Bool { get }
+    var isAlwaysOnEnabled: Bool { get set }
     
     func load() async throws
     @MainActor
@@ -19,6 +20,8 @@ protocol NEManagerProtocol: ObservableObject {
     func fetchRunningInfo(_ callback: @escaping ((NetworkStatus) -> Void))
     func updateName(name: String, server: String) async
     func exportExtensionLogs() async throws -> URL
+    @MainActor
+    func setAlwaysOnEnabled(_ enabled: Bool) async throws
 }
 
 class NEManager: NEManagerProtocol {
@@ -59,6 +62,7 @@ class NEManager: NEManagerProtocol {
     @Published var status: NEVPNStatus
     @Published var connectedDate: Date?
     @Published var isLoading = true
+    @Published var isAlwaysOnEnabled = false
     
     init() {
         status = .invalid
@@ -102,6 +106,7 @@ class NEManager: NEManagerProtocol {
         connection = nil
         status = .invalid
         connectedDate = nil
+        isAlwaysOnEnabled = false
         if let observer {
             NotificationCenter.default.removeObserver(observer)
         }
@@ -114,6 +119,7 @@ class NEManager: NEManagerProtocol {
         connection = manager?.connection
         status = manager?.connection.status ?? .invalid
         connectedDate = manager?.connection.connectedDate
+        isAlwaysOnEnabled = manager?.isOnDemandEnabled ?? false
         registerObserver()
     }
     
@@ -307,12 +313,35 @@ class NEManager: NEManagerProtocol {
             }
         }
     }
+
+    @MainActor
+    func setAlwaysOnEnabled(_ enabled: Bool) async throws {
+        if status == .invalid || manager == nil {
+            _ = try await NEManager.install()
+            try await load()
+        }
+        guard let manager else {
+            throw NEManagerError.providerUnavailable
+        }
+        manager.isEnabled = true
+        if enabled {
+            let rule = NEOnDemandRuleConnect()
+            rule.interfaceTypeMatch = .any
+            manager.onDemandRules = [rule]
+        } else {
+            manager.onDemandRules = nil
+        }
+        manager.isOnDemandEnabled = enabled
+        try await manager.saveToPreferences()
+        isAlwaysOnEnabled = enabled
+    }
 }
 
 class MockNEManager: NEManagerProtocol {
     @Published var status: NEVPNStatus = .disconnected
     @Published var connectedDate: Date? = nil
     @Published var isLoading: Bool = true
+    @Published var isAlwaysOnEnabled: Bool = false
 
     // Simulate a successful load
     func load() async throws {
@@ -345,6 +374,11 @@ class MockNEManager: NEManagerProtocol {
 
     func exportExtensionLogs() async throws -> URL {
         throw NEManager.NEManagerError.providerUnavailable
+    }
+
+    @MainActor
+    func setAlwaysOnEnabled(_ enabled: Bool) async throws {
+        isAlwaysOnEnabled = enabled
     }
     
     static var dummyRunningInfo: NetworkStatus {
