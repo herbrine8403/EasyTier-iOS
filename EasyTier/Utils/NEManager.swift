@@ -2,10 +2,10 @@ import Foundation
 import Combine
 import NetworkExtension
 import WidgetKit
+import os
 
 import EasyTierShared
 import TOMLKit
-import os
 
 protocol NEManagerProtocol: ObservableObject {
     var status: NEVPNStatus { get }
@@ -25,7 +25,7 @@ protocol NEManagerProtocol: ObservableObject {
 }
 
 class NEManager: NEManagerProtocol {
-    private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "App", category: "NEManager")
+    private static let logger = Logger(subsystem: APP_BUNDLE_ID, category: "NEManager")
 
     private enum ProviderCommand: String {
         case exportOSLog = "export_oslog"
