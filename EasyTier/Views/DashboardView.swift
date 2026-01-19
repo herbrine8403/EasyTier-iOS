@@ -58,7 +58,7 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
         Group {
             if let $profile = Binding($selectedProfile) {
                 if isConnected {
-                    StatusView<Manager>($profile.wrappedValue.networkName)
+                    StatusView($profile.wrappedValue.networkName, manager: manager)
                 } else {
                     NetworkEditView(profile: Binding(
                         get: { $profile.wrappedValue },
@@ -309,6 +309,9 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
         .onChange(of: profilesUseICloud) { _ in
             selectedProfile = nil
             selectedProfileName = nil
+        }
+        .onChange(of: selectedProfileName) { name in
+            lastSelected = name
         }
         .onDisappear {
             // Release observer to remove registration

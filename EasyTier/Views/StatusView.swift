@@ -3,7 +3,7 @@ import Foundation
 import SwiftUI
 
 struct StatusView<Manager: NEManagerProtocol>: View {
-    @EnvironmentObject var manager: Manager
+    @ObservedObject var manager: Manager
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.horizontalSizeClass) var sizeClass
     @AppStorage("statusRefreshInterval") private var statusRefreshInterval: Double = 1.0
@@ -17,8 +17,9 @@ struct StatusView<Manager: NEManagerProtocol>: View {
     
     let networkName: String
     
-    init(_ name: String) {
+    init(_ name: String, manager: Manager) {
         networkName = name
+        _manager = ObservedObject(wrappedValue: manager)
     }
     
     enum InfoKind: Identifiable, CaseIterable {
@@ -439,9 +440,14 @@ struct TrafficItem: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .onChange(of: value) { newValue in
-            guard let previousValue, let newValue else { return }
+            guard let newValue else { return }
             guard let lastTime else {
                 lastTime = Date()
+                return
+            }
+            guard let previousValue else {
+                self.lastTime = Date()
+                previousValue = newValue
                 return
             }
             let currentTime = Date()
@@ -894,10 +900,10 @@ struct StunInfoSheet: View {
 struct StatusView_Previews: PreviewProvider {
     static var previews: some View {
         @StateObject var manager = MockNEManager()
-        StatusView<MockNEManager>("Example")
+        StatusView("Example", manager: manager)
             .environmentObject(manager)
         
-        StatusView<MockNEManager>("Example")
+        StatusView("Example", manager: manager)
             .environmentObject(manager)
             .previewInterfaceOrientation(.landscapeLeft)
     }
