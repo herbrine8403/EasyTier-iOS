@@ -1,5 +1,4 @@
 import Foundation
-import SwiftData
 #if canImport(UIKit)
 import UIKit
 #endif
@@ -206,7 +205,7 @@ struct NetworkConfig: Codable {
     }
     
     
-    init(from profile: NetworkProfile, name: String) {
+    init(from profile: NetworkProfile) {
         // default profile for comparing
         let def = NetworkProfile(id: UUID())
         
@@ -219,8 +218,8 @@ struct NetworkConfig: Codable {
             self.hostname = hostname
         }
         self.dhcp = profile.dhcp
-        self.instanceName = name
-        self.networkIdentity = NetworkIdentity(networkName: name, networkSecret: profile.networkSecret)
+        self.instanceName = profile.networkName
+        self.networkIdentity = NetworkIdentity(networkName: profile.networkName, networkSecret: profile.networkSecret)
         
         if !profile.dhcp {
             self.ipv4 = profile.virtualIPv4.cidrString
@@ -321,14 +320,7 @@ struct NetworkConfig: Codable {
 }
 
 extension NetworkConfig {
-    var preferredName: String {
-        if let networkName = networkIdentity?.networkName, !networkName.isEmpty {
-            return networkName
-        }
-        return instanceName
-    }
-
-    func apply(to profile: NetworkProfile) {
+    func apply(to profile: inout NetworkProfile) {
         let def = NetworkProfile(id: profile.id)
 
         profile.dhcp = def.dhcp
@@ -377,7 +369,8 @@ extension NetworkConfig {
         if let hostname, !hostname.isEmpty {
             profile.hostname = hostname
         }
-        profile.networkSecret = networkIdentity?.networkSecret ?? def.networkSecret
+        profile.networkName = networkIdentity?.networkName ?? ""
+        profile.networkSecret = networkIdentity?.networkSecret ?? ""
 
         if let dhcp {
             profile.dhcp = dhcp
@@ -567,5 +560,14 @@ extension NetworkConfig {
             return port
         }
         return splitHostPort(value).port
+    }
+}
+
+extension NetworkProfile {
+    init(from config: NetworkConfig) {
+        let id = UUID(uuidString: config.instanceId) ?? UUID()
+        var profile = NetworkProfile(id: id)
+        config.apply(to: &profile)
+        self = profile
     }
 }

@@ -15,6 +15,12 @@ struct StatusView<Manager: NEManagerProtocol>: View {
     @State var showNodeInfo = false
     @State var showStunInfo = false
     
+    let networkName: String
+    
+    init(_ name: String) {
+        networkName = name
+    }
+    
     enum InfoKind: Identifiable, CaseIterable {
         var id: Self { self }
         case peerInfo
@@ -141,7 +147,7 @@ struct StatusView<Manager: NEManagerProtocol>: View {
         Group {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(status?.myNodeInfo?.hostname ?? String(localized: "not_available"))
+                    Text(networkName)
                         .font(.title2)
                         .fontWeight(.bold)
                     Text(status?.myNodeInfo?.version ?? String(localized: "not_available"))
@@ -886,10 +892,10 @@ struct StunInfoSheet: View {
 struct StatusView_Previews: PreviewProvider {
     static var previews: some View {
         @StateObject var manager = MockNEManager()
-        StatusView<MockNEManager>()
+        StatusView<MockNEManager>("Example")
             .environmentObject(manager)
         
-        StatusView<MockNEManager>()
+        StatusView<MockNEManager>("Example")
             .environmentObject(manager)
             .previewInterfaceOrientation(.landscapeLeft)
     }

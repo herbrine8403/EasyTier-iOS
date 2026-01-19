@@ -161,9 +161,9 @@ class NEManager: NEManagerProtocol {
         }
     }
     
-    static func generateOptions(_ profile: ProfileSummary) throws -> EasyTierOptions {
+    static func generateOptions(_ profile: NetworkProfile) throws -> EasyTierOptions {
         var options = EasyTierOptions()
-        var config = NetworkConfig(from: profile.profile, name: profile.name)
+        var config = NetworkConfig(from: profile)
         if config.hostname == nil && UserDefaults.standard.bool(forKey: "useRealDeviceNameAsDefault") {
             config.hostname = DefaultDeviceName
         }
@@ -193,7 +193,7 @@ class NEManager: NEManagerProtocol {
            let logLevel = LogLevel.init(rawValue: logLevel) {
             options.logLevel = logLevel
         }
-        if profile.profile.enableMagicDNS {
+        if profile.enableMagicDNS {
             options.magicDNS = true
         }
         
@@ -343,7 +343,7 @@ class MockNEManager: NEManagerProtocol {
 
     // Simulate a successful load
     func load() async throws {
-        try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
+        try await Task.sleep(nanoseconds: 500_000_000)
         isLoading = false
         status = .disconnected
     }
@@ -352,14 +352,14 @@ class MockNEManager: NEManagerProtocol {
     func connect() async throws {
         status = .connecting
         // Simulate network delay
-        try await Task.sleep(nanoseconds: 2_000_000_000)
+        try await Task.sleep(nanoseconds: 500_000_000)
         status = .connected
         connectedDate = Date()
     }
 
     func disconnect() async {
         status = .disconnecting
-        try? await Task.sleep(nanoseconds: 1_000_000_000)
+        try? await Task.sleep(nanoseconds: 500_000_000)
         status = .disconnected
         connectedDate = nil
     }

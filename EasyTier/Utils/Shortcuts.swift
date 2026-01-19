@@ -1,5 +1,4 @@
 import AppIntents
-import SwiftData
 import NetworkExtension
 import SwiftUI
 
@@ -9,37 +8,43 @@ struct NetworkProfileEntity: AppEntity {
     static var typeDisplayRepresentation: TypeDisplayRepresentation = "easytier_network"
     static var defaultQuery = NetworkProfileQuery()
 
-    var id: UUID
+    var id: String
     var name: String
 
     var displayRepresentation: DisplayRepresentation {
         DisplayRepresentation(title: "\(name)")
     }
 
-    init(id: UUID, name: String) {
+    init(id: String, name: String) {
         self.id = id
         self.name = name
     }
 
-    init(from profile: ProfileSummary) {
-        self.id = profile.id
-        self.name = profile.name
+    init(from profile: NetworkProfile) {
+        self.id = profile.networkName
+        self.name = profile.networkName
     }
 }
 
 struct NetworkProfileQuery: EntityQuery {
-    func entities(for identifiers: [UUID]) async throws -> [NetworkProfileEntity] {
-        let modelContext = ModelContext(try ModelContainer(for: ProfileSummary.self, NetworkProfile.self))
-        let descriptor = FetchDescriptor<ProfileSummary>(predicate: #Predicate { identifiers.contains($0.id) })
-        let profiles = try modelContext.fetch(descriptor)
-        return profiles.map { NetworkProfileEntity(from: $0) }
+    func entities(for identifiers: [String]) async throws -> [NetworkProfileEntity] {
+        return await MainActor.run {
+            let profiles = ProfileStore.loadIndexOrEmpty()
+            return profiles
+                .filter { identifiers.contains($0.id) }
+                .map {
+                    return NetworkProfileEntity(id: $0.id, name: $0.configName)
+                }
+        }
     }
 
     func suggestedEntities() async throws -> [NetworkProfileEntity] {
-        let modelContext = ModelContext(try ModelContainer(for: ProfileSummary.self, NetworkProfile.self))
-        let descriptor = FetchDescriptor<ProfileSummary>(sortBy: [SortDescriptor(\.createdAt)])
-        let profiles = try modelContext.fetch(descriptor)
-        return profiles.map { NetworkProfileEntity(from: $0) }
+        return await MainActor.run {
+            let profiles = ProfileStore.loadIndexOrEmpty()
+            return profiles.map {
+                return NetworkProfileEntity(id: $0.id, name: $0.configName)
+            }
+        }
     }
 }
 

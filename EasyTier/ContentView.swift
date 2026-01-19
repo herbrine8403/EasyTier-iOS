@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftData
 
 let columnWidth: CGFloat = 450
 
@@ -30,24 +29,8 @@ struct MainView_Previews: PreviewProvider {
     static var previews: some View {
         @StateObject var manager = MockNEManager()
         ContentView<MockNEManager>()
-            .modelContainer(
-                try! ModelContainer(
-                    for: Schema([ProfileSummary.self, NetworkProfile.self]),
-                    configurations: ModelConfiguration(
-                        isStoredInMemoryOnly: true
-                    )
-                )
-            )
             .environmentObject(manager)
         ContentView<MockNEManager>()
-            .modelContainer(
-                try! ModelContainer(
-                    for: Schema([ProfileSummary.self, NetworkProfile.self]),
-                    configurations: ModelConfiguration(
-                        isStoredInMemoryOnly: true
-                    )
-                )
-            )
             .environmentObject(manager)
             .previewInterfaceOrientation(.landscapeLeft)
     }

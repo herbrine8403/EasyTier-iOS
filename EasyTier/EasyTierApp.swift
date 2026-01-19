@@ -1,13 +1,16 @@
-import SwiftUI
-import SwiftData
 import EasyTierShared
+import SwiftUI
 
 @main
 struct EasyTierApp: App {
-    @StateObject var manager = NEManager()
-    
+    #if targetEnvironment(simulator)
+        @StateObject var manager = MockNEManager()
+    #else
+        @StateObject var manager = NEManager()
+    #endif
+
     init() {
-        let values: [String : Any] = [
+        let values: [String: Any] = [
             "logLevel": LogLevel.info.rawValue,
             "statusRefreshInterval": 1.0,
             "useRealDeviceNameAsDefault": true,
@@ -23,9 +26,12 @@ struct EasyTierApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView<NEManager>()
+            #if targetEnvironment(simulator)
+                ContentView<MockNEManager>()
+            #else
+                ContentView<NEManager>()
+            #endif
         }
-        .modelContainer(for: [ProfileSummary.self, NetworkProfile.self])
         .environmentObject(manager)
     }
 }

@@ -567,6 +567,22 @@
         }
       }
     },
+    "config_name" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Config Name"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "配置名称"
+          }
+        }
+      }
+    },
     "connect_easytier" : {
       "localizations" : {
         "en" : {
@@ -719,13 +735,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Device Management"
+            "value" : "Management"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "设备管理"
+            "value" : "管理"
           }
         }
       }
@@ -1087,6 +1103,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "编辑配置文件"
+          }
+        }
+      }
+    },
+    "edit_config_name" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit Config Name"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑配置名称"
           }
         }
       }
@@ -2246,6 +2278,22 @@
         }
       }
     },
+    "new_network" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Network"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新网络"
+          }
+        }
+      }
+    },
     "next_hop_peer_id" : {
       "localizations" : {
         "en" : {
@@ -2982,6 +3030,22 @@
         }
       }
     },
+    "rename" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rename"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重命名"
+          }
+        }
+      }
+    },
     "restricted" : {
       "localizations" : {
         "en" : {
@@ -3093,6 +3157,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "保存"
+          }
+        }
+      }
+    },
+    "save_to_icloud" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save Profiles to iCloud"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存配置到 iCloud"
           }
         }
       }

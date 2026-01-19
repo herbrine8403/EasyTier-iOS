@@ -1,6 +1,5 @@
 import Foundation
 import SwiftUI
-import SwiftData
 
 struct BoolFlag: Identifiable {
     let id = UUID()
@@ -9,30 +8,7 @@ struct BoolFlag: Identifiable {
     let help: LocalizedStringKey?
 }
 
-@Model
-final class ProfileSummary {
-    @Attribute(.unique) var id: UUID
-    var name: String
-    var createdAt: Date
-    
-    @Relationship(deleteRule: .cascade) var profile: NetworkProfile
-    
-    convenience init(name: String, context: ModelContext) {
-        self.init(id: UUID(), name: name)
-        context.insert(self)
-    }
-    
-    init(id: UUID, name: String) {
-        self.id = id
-        self.name = name
-        self.createdAt = Date()
-        let profile = NetworkProfile(id: id)
-        self.profile = profile
-    }
-}
-
-@Model
-final class NetworkProfile {
+struct NetworkProfile: Identifiable, Equatable {
     enum NetworkingMethod: Int, Codable, CaseIterable, Identifiable {
         var id: Self { self }
         case publicServer = 0
@@ -48,7 +24,7 @@ final class NetworkProfile {
         }
     }
 
-    struct PortForwardSetting: Codable, Hashable, Identifiable {
+    nonisolated struct PortForwardSetting: Codable, Hashable, Identifiable {
         var id = UUID()
         var bindAddr: String = ""
         var bindPort: Int = 0
@@ -57,8 +33,7 @@ final class NetworkProfile {
         var proto: String = "tcp"
     }
 
-    nonisolated
-    struct CIDR: Codable, Hashable, Identifiable {
+    nonisolated struct CIDR: Codable, Hashable, Identifiable {
         var id = UUID()
         var ip: String = "0.0.0.0"
         var length: String = "32"
@@ -68,7 +43,7 @@ final class NetworkProfile {
         }
     }
 
-    struct ProxyCIDR: Codable, Hashable, Identifiable {
+    nonisolated struct ProxyCIDR: Codable, Hashable, Identifiable {
         var id = UUID()
         var cidr: String = "0.0.0.0"
         var enableMapping: Bool = false
@@ -76,12 +51,11 @@ final class NetworkProfile {
         var length: String = "32"
     }
     
-    @Attribute(.unique) var id: UUID
-
+    var id: UUID
+    var networkName: String = "easytier"
     var dhcp: Bool = true
     var virtualIPv4: CIDR = CIDR(ip: "10.144.144.0", length: "24")
     var hostname: String? = nil
-//    var networkName: String = "easytier"
     var networkSecret: String = ""
 
     var networkingMethod: NetworkingMethod = NetworkingMethod.publicServer
@@ -135,7 +109,7 @@ final class NetworkProfile {
     var enableMagicDNS: Bool = false
     var enablePrivateMode: Bool = false
 
-    init(id: UUID) {
+    init(id: UUID = UUID()) {
         self.id = id
     }
     

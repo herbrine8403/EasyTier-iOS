@@ -2,7 +2,6 @@ import SwiftUI
 
 struct NetworkEditView: View {
     @Environment(\.horizontalSizeClass) var sizeClass
-    @Binding var name: String
     @Binding var profile: NetworkProfile
     @State var showProxyCIDREditor = false
     @State var editingProxyCIDR: NetworkProfile.ProxyCIDR?
@@ -62,7 +61,7 @@ struct NetworkEditView: View {
 
             Section("network") {
                 LabeledContent("network_name") {
-                    TextField("easytier", text: $name)
+                    TextField("easytier", text: $profile.networkName)
                         .multilineTextAlignment(.trailing)
                 }
 
@@ -396,14 +395,13 @@ extension Optional where Wrapped == Int {
 
 struct NetworkConfigurationView_Previews: PreviewProvider {
     static var previews: some View {
-        @State var profile = NetworkProfile(id: UUID())
-        @State var name = ""
+        @State var profile = NetworkProfile()
         NavigationStack {
-            NetworkEditView(name: $name, profile: $profile)
+            NetworkEditView(profile: $profile)
         }
         
         NavigationStack {
-            NetworkEditView(name: $name, profile: $profile)
+            NetworkEditView(profile: $profile)
         }
         .previewInterfaceOrientation(.landscapeLeft)
     }
