@@ -101,7 +101,7 @@ func buildIPv4Routes(info: RunningInfo?, options: EasyTierOptions) -> [NEIPv4Rou
                 continue
             }
             if ipv4SubnetsOverlap(bigger: sortedCIDRs[i], smaller: sortedCIDRs[j]) {
-                logger.warning("buildIPv4Routes() remove covered route: \(sortedCIDRs[j].address.description)/\(sortedCIDRs[j].networkLength) covered by \(sortedCIDRs[i].address.description)/\(sortedCIDRs[i].networkLength)")
+                logger.warning("buildIPv4Routes() remove covered route: \(sortedCIDRs[j].address.description, privacy: .public)/\(sortedCIDRs[j].networkLength, privacy: .public) covered by \(sortedCIDRs[i].address.description, privacy: .public)/\(sortedCIDRs[i].networkLength, privacy: .public)")
                 indicesToRemove.insert(j)
             }
         }

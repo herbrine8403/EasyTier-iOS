@@ -9,13 +9,14 @@ struct SettingsView<Manager: NEManagerProtocol>: View {
     @AppStorage("logLevel") var logLevel: LogLevel = .info
     @AppStorage("statusRefreshInterval") var statusRefreshInterval: Double = 1.0
     @AppStorage("useRealDeviceNameAsDefault") var useRealDeviceNameAsDefault: Bool = true
+    @AppStorage("plainTextIPInput") var plainTextIPInput: Bool = false
+    @AppStorage("profilesUseICloud") var profilesUseICloud: Bool = false
     @AppStorage("includeAllNetworks", store: defaults) var includeAllNetworks: Bool = false
     @AppStorage("excludeLocalNetworks", store: defaults) var excludeLocalNetworks: Bool = false
     @AppStorage("excludeCellularServices", store: defaults) var excludeCellularServices: Bool = true
     @AppStorage("excludeAPNs", store: defaults) var excludeAPNs: Bool = true
     @AppStorage("excludeDeviceCommunication", store: defaults) var excludeDeviceCommunication: Bool = true
     @AppStorage("enforceRoutes", store: defaults) var enforceRoutes: Bool = false
-    @AppStorage("profilesUseICloud") var profilesUseICloud: Bool = false
     @State var selectedPane: SettingsPane?
     @State private var exportURL: URL?
     @State private var isExportPresented = false
@@ -64,6 +65,7 @@ struct SettingsView<Manager: NEManagerProtocol>: View {
                     }
                 }
                 Toggle("use_device_name", isOn: $useRealDeviceNameAsDefault)
+                Toggle("plain_text_ip_input", isOn: $plainTextIPInput)
                 Toggle("save_to_icloud", isOn: $profilesUseICloud)
                 Toggle("always_on", isOn: $manager.isAlwaysOnEnabled)
                     .disabled(manager.isLoading || isAlwaysOnUpdating)

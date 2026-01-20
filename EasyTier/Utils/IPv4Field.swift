@@ -1,7 +1,9 @@
 import SwiftUI
 
 struct IPv4Field: View {
+    @AppStorage("plainTextIPInput") var plainTextIPInput: Bool = false
     @Binding var ipAddress: String
+    
     var length: Binding<String>?
     var disabledLengthEdit: Bool
     
@@ -16,32 +18,49 @@ struct IPv4Field: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(0..<4, id: \.self) { index in
-                ipTextField(index: index)
-                
-                if index < 3 {
-                    Text(".")
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, 1)
-                        .padding(.bottom, 2)
+            if plainTextIPInput {
+                TextField("0.0.0.0", text: $ipAddress)
+                    .keyboardType(.decimalPad)
+                    .multilineTextAlignment(.trailing)
+                    .font(.body.monospaced())
+            } else {
+                ForEach(0..<4, id: \.self) { index in
+                    ipTextField(index: index)
+                    
+                    if index < 3 {
+                        Text(".")
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 1)
+                            .padding(.bottom, 2)
+                    }
                 }
             }
             
             if let lengthBinding = length {
                 Text("/")
                     .foregroundStyle(.secondary)
-                    .padding(.horizontal, 2)
+                    .padding(.horizontal, plainTextIPInput ? 8 : 2)
                     .padding(.bottom, 2)
                 
-                TextField("32", text: Binding(
-                    get: { lengthBinding.wrappedValue },
-                    set: { processLengthInput($0, binding: lengthBinding) }
-                ))
-                .disabled(disabledLengthEdit)
-                .keyboardType(.numberPad)
-                .multilineTextAlignment(.center)
-                .frame(width: 40)
-                .focused($focusedField, equals: 4)
+                if plainTextIPInput {
+                    TextField("32", text: lengthBinding)
+                        .disabled(disabledLengthEdit)
+                        .keyboardType(.numberPad)
+                        .multilineTextAlignment(.trailing)
+                        .fixedSize(horizontal: true, vertical: false)
+                        .font(.body.monospaced())
+                } else {
+                    TextField("32", text: Binding(
+                        get: { lengthBinding.wrappedValue },
+                        set: { processLengthInput($0, binding: lengthBinding) }
+                    ))
+                    .disabled(disabledLengthEdit)
+                    .keyboardType(.numberPad)
+                    .multilineTextAlignment(.center)
+                    .frame(width: 40)
+                    .focused($focusedField, equals: 4)
+                    .font(.body.monospaced())
+                }
             }
         }
         .onAppear {
@@ -63,6 +82,7 @@ struct IPv4Field: View {
         .multilineTextAlignment(.center)
         .frame(minWidth: 30, maxWidth: 45)
         .focused($focusedField, equals: index)
+        .font(.body.monospaced())
     }
     
     private func processOctetInput(oldValue: String, newValue: String, at index: Int) {

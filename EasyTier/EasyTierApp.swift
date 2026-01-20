@@ -14,6 +14,8 @@ struct EasyTierApp: App {
             "logLevel": LogLevel.info.rawValue,
             "statusRefreshInterval": 1.0,
             "useRealDeviceNameAsDefault": true,
+            "plainTextIPInput": false,
+            "profilesUseICloud": false,
             "includeAllNetworks": false,
             "excludeLocalNetworks": false,
             "excludeCellularServices": true,
