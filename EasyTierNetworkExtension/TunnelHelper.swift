@@ -78,7 +78,9 @@ func initRustLogger(level: LogLevel) {
     var errPtr: UnsafePointer<CChar>? = nil
     let ret = path.withCString { pathPtr in
         level.rawValue.withCString { levelPtr in
-            return init_logger(pathPtr, levelPtr, &errPtr)
+            loggerSubsystem.withCString { subsystemPtr in
+                return init_logger(pathPtr, levelPtr, subsystemPtr, &errPtr)
+            }
         }
     }
     if ret != 0 {

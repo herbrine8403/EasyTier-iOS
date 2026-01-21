@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-int32_t init_logger(const char *path, const char *level, const char **err_msg);
+int32_t init_logger(const char *path, const char *level, const char *subsystem, const char **err_msg);
 
 int32_t set_tun_fd(int32_t fd, const char **err_msg);
 

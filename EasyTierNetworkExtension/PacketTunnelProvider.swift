@@ -11,7 +11,8 @@ enum ProviderCommand: String {
     case runningInfo = "running_info"
 }
 
-let logger = Logger(subsystem: APP_BUNDLE_ID, category: "swift")
+let loggerSubsystem = "\(APP_BUNDLE_ID).tunnel"
+let logger = Logger(subsystem: loggerSubsystem, category: "swift")
 
 private struct ProviderMessageResponse: Codable {
     let ok: Bool
@@ -176,7 +177,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             }
         }
         registerRunningInfoCallback()
+        self.reasserting = true
         applyNetworkSettings() {
+            self.reasserting = true
             completionHandler($0)
         }
     }

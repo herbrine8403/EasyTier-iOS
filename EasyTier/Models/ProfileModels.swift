@@ -54,7 +54,7 @@ struct NetworkProfile: Identifiable, Equatable {
     var id: UUID
     var networkName: String = "easytier"
     var dhcp: Bool = true
-    var virtualIPv4: CIDR = CIDR(ip: "10.144.144.0", length: "24")
+    var virtualIPv4: CIDR = CIDR(ip: "10.126.126.1", length: "24")
     var hostname: String = ""
     var networkSecret: String = ""
 
@@ -67,7 +67,7 @@ struct NetworkProfile: Identifiable, Equatable {
 
     var enableVPNPortal: Bool = false
     var vpnPortalListenPort: Int = 22022
-    var vpnPortalClientCIDR: CIDR = CIDR(ip: "10.144.144.0", length: "24")
+    var vpnPortalClientCIDR: CIDR = CIDR(ip: "10.126.126.0", length: "24")
 
     var listenerURLs: [TextItem] = ["tcp://0.0.0.0:11010", "udp://0.0.0.0:11010", "wg://0.0.0.0:11011"]
     var latencyFirst: Bool = false

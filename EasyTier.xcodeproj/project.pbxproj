@@ -82,6 +82,10 @@
 		0526D8422F17D98E00968CE2 /* libEasyTierShared.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libEasyTierShared.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		0558362E2F04D26600139811 /* EasyTierNetworkExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = EasyTierNetworkExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		055836302F04D26700139811 /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
+		058E57A42F20AFD800BE84F9 /* lib.rs */ = {isa = PBXFileReference; lastKnownFileType = text; path = lib.rs; sourceTree = "<group>"; };
+		058EB1BF2F20AFD800BE84F9 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		058EB1C02F20AFD800BE84F9 /* Cargo.lock */ = {isa = PBXFileReference; lastKnownFileType = text; path = Cargo.lock; sourceTree = "<group>"; };
+		058EB1C12F20AFD800BE84F9 /* Cargo.toml */ = {isa = PBXFileReference; lastKnownFileType = text; path = Cargo.toml; sourceTree = "<group>"; };
 		05B61F5B2F05056D00646DDC /* libeasytier_ios.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libeasytier_ios.a; sourceTree = "<group>"; };
 		7A59B8192F1641100069728D /* ControlWidgetsExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ControlWidgetsExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		7A59B81A2F1641100069728D /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
@@ -187,10 +191,11 @@
 		051C6A022F03AB0000AF29B1 = {
 			isa = PBXGroup;
 			children = (
-				051C6A0D2F03AB0000AF29B1 /* EasyTier */,
-				0526D8432F17D98E00968CE2 /* EasyTierShared */,
-				055836322F04D26700139811 /* EasyTierNetworkExtension */,
+				058EB1C22F20AFD800BE84F9 /* Core */,
 				7A59B81E2F1641100069728D /* ControlWidgets */,
+				051C6A0D2F03AB0000AF29B1 /* EasyTier */,
+				055836322F04D26700139811 /* EasyTierNetworkExtension */,
+				0526D8432F17D98E00968CE2 /* EasyTierShared */,
 				0526D7822F1762C300968CE2 /* Localizable.xcstrings */,
 				0558362F2F04D26700139811 /* Frameworks */,
 				051C6A0C2F03AB0000AF29B1 /* Products */,
@@ -217,6 +222,25 @@
 				7A59B81C2F1641100069728D /* SwiftUI.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		058E57A52F20AFD800BE84F9 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				058E57A42F20AFD800BE84F9 /* lib.rs */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		058EB1C22F20AFD800BE84F9 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				058E57A52F20AFD800BE84F9 /* src */,
+				058EB1BF2F20AFD800BE84F9 /* .gitignore */,
+				058EB1C02F20AFD800BE84F9 /* Cargo.lock */,
+				058EB1C12F20AFD800BE84F9 /* Cargo.toml */,
+			);
+			path = Core;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
