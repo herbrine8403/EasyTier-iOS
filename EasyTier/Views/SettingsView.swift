@@ -4,7 +4,7 @@ import EasyTierShared
 
 let defaults = UserDefaults(suiteName: APP_GROUP_ID)
 
-struct SettingsView<Manager: NEManagerProtocol>: View {
+struct SettingsView<Manager: NetworkExtensionManagerProtocol>: View {
     @ObservedObject var manager: Manager
     @AppStorage("logLevel") var logLevel: LogLevel = .info
     @AppStorage("statusRefreshInterval") var statusRefreshInterval: Double = 1.0
@@ -41,7 +41,7 @@ struct SettingsView<Manager: NEManagerProtocol>: View {
 
     var body: some View {
         NavigationStack {
-            AdaptiveNav(primaryColumn, secondaryColumn, showNav: $selectedPane)
+            AdaptiveNavigation(primaryColumn, secondaryColumn, showNav: $selectedPane)
                 .navigationTitle("settings")
                 .navigationBarTitleDisplayMode(.inline)
                 .scrollDismissesKeyboard(.immediately)

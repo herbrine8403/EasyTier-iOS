@@ -14,7 +14,7 @@ struct NetworkEditView: View {
     }
     
     var body: some View {
-        AdaptiveNav(primaryColumn, secondaryColumn, showNav: $selectedPane)
+        AdaptiveNavigation(primaryColumn, secondaryColumn, showNav: $selectedPane)
     }
     
     var primaryColumn: some View {

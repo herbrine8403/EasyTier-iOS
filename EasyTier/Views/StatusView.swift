@@ -2,7 +2,7 @@ import Combine
 import Foundation
 import SwiftUI
 
-struct StatusView<Manager: NEManagerProtocol>: View {
+struct StatusView<Manager: NetworkExtensionManagerProtocol>: View {
     @ObservedObject var manager: Manager
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.horizontalSizeClass) var sizeClass

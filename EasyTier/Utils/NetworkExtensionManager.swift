@@ -7,7 +7,7 @@ import os
 import EasyTierShared
 import TOMLKit
 
-protocol NEManagerProtocol: ObservableObject {
+protocol NetworkExtensionManagerProtocol: ObservableObject {
     var status: NEVPNStatus { get }
     var connectedDate: Date? { get }
     var isLoading: Bool { get }
@@ -24,7 +24,7 @@ protocol NEManagerProtocol: ObservableObject {
     func setAlwaysOnEnabled(_ enabled: Bool) async throws
 }
 
-class NEManager: NEManagerProtocol {
+class NetworkExtensionManager: NetworkExtensionManagerProtocol {
     private static let logger = Logger(subsystem: APP_BUNDLE_ID, category: "NEManager")
 
     private enum ProviderCommand: String {
@@ -222,7 +222,7 @@ class NEManager: NEManagerProtocol {
             return
         }
         if status == .invalid {
-            _ = try await NEManager.install()
+            _ = try await NetworkExtensionManager.install()
             try await load()
         }
         guard let manager else {
@@ -317,7 +317,7 @@ class NEManager: NEManagerProtocol {
     @MainActor
     func setAlwaysOnEnabled(_ enabled: Bool) async throws {
         if status == .invalid || manager == nil {
-            _ = try await NEManager.install()
+            _ = try await NetworkExtensionManager.install()
             try await load()
         }
         guard let manager else {
@@ -337,7 +337,7 @@ class NEManager: NEManagerProtocol {
     }
 }
 
-class MockNEManager: NEManagerProtocol {
+class MockNEManager: NetworkExtensionManagerProtocol {
     @Published var status: NEVPNStatus = .disconnected
     @Published var connectedDate: Date? = nil
     @Published var isLoading: Bool = true
@@ -373,7 +373,7 @@ class MockNEManager: NEManagerProtocol {
     }
 
     func exportExtensionLogs() async throws -> URL {
-        throw NEManager.NEManagerError.providerUnavailable
+        throw NetworkExtensionManager.NEManagerError.providerUnavailable
     }
 
     @MainActor

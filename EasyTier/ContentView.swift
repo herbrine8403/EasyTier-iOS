@@ -2,7 +2,7 @@ import SwiftUI
 
 let columnWidth: CGFloat = 450
 
-struct ContentView<Manager: NEManagerProtocol>: View {
+struct ContentView<Manager: NetworkExtensionManagerProtocol>: View {
     @ObservedObject var manager: Manager
     
     var body: some View {

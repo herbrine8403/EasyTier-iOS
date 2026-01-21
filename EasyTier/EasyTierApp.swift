@@ -6,7 +6,7 @@ struct EasyTierApp: App {
     #if targetEnvironment(simulator)
         @StateObject var manager = MockNEManager()
     #else
-        @StateObject var manager = NEManager()
+        @StateObject var manager = NetworkExtensionManager()
     #endif
 
     init() {

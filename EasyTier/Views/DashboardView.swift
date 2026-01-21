@@ -8,7 +8,7 @@ import EasyTierShared
 private let dashboardLogger = Logger(subsystem: APP_BUNDLE_ID, category: "main.dashboard")
 private let profileSaveDebounceInterval: TimeInterval = 0.5
 
-struct DashboardView<Manager: NEManagerProtocol>: View {
+struct DashboardView<Manager: NetworkExtensionManagerProtocol>: View {
     @Environment(\.scenePhase) var scenePhase
     @ObservedObject var manager: Manager
     
@@ -34,7 +34,7 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
 
     @State var errorMessage: TextItem?
 
-    @State var darwinObserver: DNObserver? = nil
+    @State var darwinObserver: DarwinNotificationObserver? = nil
     @State var pendingSaveWorkItem: DispatchWorkItem? = nil
     
     init(manager: Manager) {
@@ -252,8 +252,8 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
                                 await manager.disconnect()
                             } else if let selectedProfile {
                                 do {
-                                    let options = try NEManager.generateOptions(selectedProfile)
-                                    NEManager.saveOptions(options)
+                                    let options = try NetworkExtensionManager.generateOptions(selectedProfile)
+                                    NetworkExtensionManager.saveOptions(options)
                                     try await manager.connect()
                                 } catch {
                                     dashboardLogger.error("connect failed: \(error)")
@@ -284,13 +284,13 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
                    let lastSelected {
                     await loadProfile(lastSelected)
                     if let selectedProfile,
-                       let options = try? NEManager.generateOptions(selectedProfile) {
-                        NEManager.saveOptions(options)
+                       let options = try? NetworkExtensionManager.generateOptions(selectedProfile) {
+                        NetworkExtensionManager.saveOptions(options)
                     }
                 }
             }
             // Register Darwin notification observer for tunnel errors
-            darwinObserver = DNObserver(name: "\(APP_BUNDLE_ID).error") {
+            darwinObserver = DarwinNotificationObserver(name: "\(APP_BUNDLE_ID).error") {
                 // Read the latest error from shared App Group defaults
                 let defaults = UserDefaults(suiteName: APP_GROUP_ID)
                 if let msg = defaults?.string(forKey: "TunnelLastError") {
@@ -384,8 +384,8 @@ struct DashboardView<Manager: NEManagerProtocol>: View {
     private func saveProfile(saveOptions: Bool = true) async {
         if saveOptions,
            let selectedProfile,
-           let options = try? NEManager.generateOptions(selectedProfile) {
-            NEManager.saveOptions(options)
+           let options = try? NetworkExtensionManager.generateOptions(selectedProfile) {
+            NetworkExtensionManager.saveOptions(options)
         }
         if let selectedProfile, let selectedProfileName {
             do {

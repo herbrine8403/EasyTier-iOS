@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct AdaptiveNav<PrimaryView, SecondaryView, Enum>: View where PrimaryView: View, SecondaryView: View, Enum: Identifiable & Hashable {
+struct AdaptiveNavigation<PrimaryView, SecondaryView, Enum>: View where PrimaryView: View, SecondaryView: View, Enum: Identifiable & Hashable {
     @Environment(\.horizontalSizeClass) var sizeClass
     @ViewBuilder var primaryColumn: PrimaryView
     @ViewBuilder var secondaryColumn: SecondaryView

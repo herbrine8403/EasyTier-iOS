@@ -74,7 +74,7 @@ struct ConnectIntent: AppIntent {
 
     @MainActor
     func perform() async throws -> some IntentResult {
-        let manager = NEManager()
+        let manager = NetworkExtensionManager()
         try await manager.load()
         try await manager.connect()
         return .result()
@@ -89,7 +89,7 @@ struct DisconnectIntent: AppIntent {
 
     @MainActor
     func perform() async throws -> some IntentResult {
-        let manager = NEManager()
+        let manager = NetworkExtensionManager()
         try await manager.load()
         await manager.disconnect()
         return .result()
@@ -107,7 +107,7 @@ struct ToggleConnectIntent: AppIntent {
 
     @MainActor
     func perform() async throws -> some IntentResult {
-        let manager = NEManager()
+        let manager = NetworkExtensionManager()
         try await manager.load()
 
         // Check current status
