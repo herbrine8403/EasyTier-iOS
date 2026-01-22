@@ -12,7 +12,7 @@ struct DashboardView<Manager: NetworkExtensionManagerProtocol>: View {
     @Environment(\.scenePhase) var scenePhase
     @ObservedObject var manager: Manager
     
-    @AppStorage("lastSelected") var lastSelected: String?
+    @AppStorage("selectedProfileName", store: UserDefaults(suiteName: APP_GROUP_ID)) var lastSelected: String?
     @AppStorage("profilesUseICloud") var profilesUseICloud: Bool = false
     
     @State var selectedProfile: NetworkProfile?
@@ -264,7 +264,7 @@ struct DashboardView<Manager: NetworkExtensionManagerProtocol>: View {
                         }
                     } label: {
                         Label(
-                            isConnected ? "stop_network" : "run_network",
+                            isConnected ? "vpn_disconnect" : "vpn_connect",
                             systemImage: isConnected ? "cable.connector.slash" : "cable.connector"
                         )
                         .labelStyle(.titleAndIcon)

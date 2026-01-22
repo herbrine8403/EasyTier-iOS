@@ -1,6 +1,8 @@
 import Foundation
 import Combine
 
+import EasyTierShared
+
 struct LogLine: Identifiable, Equatable {
     let id = UUID()
     let text: String
@@ -13,7 +15,7 @@ class LogTailer: ObservableObject {
     
     private var fileHandle: FileHandle?
     private var source: DispatchSourceFileSystemObject?
-    private let queue = DispatchQueue(label: "site.yinmo.easytier.tailer", qos: .utility)
+    private let queue = DispatchQueue(label: "\(APP_BUNDLE_ID).tailer", qos: .utility)
     
     /// Starts watching a specific file in an App Group
     func startWatching(appGroupID: String, filename: String, fromStart: Bool) {

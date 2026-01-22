@@ -94,8 +94,9 @@ class NetworkExtensionManager: NetworkExtensionManagerProtocol {
     // Notify Control Widget to refresh its state
     private func syncWidgetState() {
         if #available(iOS 18.0, *) {
-            ControlCenter.shared.reloadControls(ofKind: "site.yinmo.easytier.controlwidgets")
+            ControlCenter.shared.reloadControls(ofKind: "\(APP_BUNDLE_ID).control")
         }
+        WidgetCenter.shared.reloadTimelines(ofKind: "\(APP_BUNDLE_ID).widget")
     }
     
     private func reset() {
@@ -125,8 +126,8 @@ class NetworkExtensionManager: NetworkExtensionManagerProtocol {
         let manager = NETunnelProviderManager()
         manager.localizedDescription = "EasyTier"
         let tunnelProtocol = NETunnelProviderProtocol()
-        tunnelProtocol.providerBundleIdentifier = "site.yinmo.easytier.tunnel"
-        tunnelProtocol.serverAddress = "127.0.0.1"
+        tunnelProtocol.providerBundleIdentifier = "\(APP_BUNDLE_ID).tunnel"
+        tunnelProtocol.serverAddress = "localhost"
         manager.protocolConfiguration = tunnelProtocol
         manager.isEnabled = true
         do {

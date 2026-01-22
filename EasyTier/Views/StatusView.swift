@@ -7,10 +7,11 @@ import EasyTierShared
 
 struct StatusView<Manager: NetworkExtensionManagerProtocol>: View {
     @ObservedObject var manager: Manager
-    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.scenePhase) var scenePhase
     @Environment(\.horizontalSizeClass) var sizeClass
-    @AppStorage("statusRefreshInterval") private var statusRefreshInterval: Double = 1.0
-    @State var timerSubscription: AnyCancellable?
+    @AppStorage("statusRefreshInterval") var statusRefreshInterval: Double = 1.0
+    @State var timer = Timer.publish(every: 1.0, on: .main, in: .common)
+    @State var timerSubscription: Cancellable?
     @State var status: NetworkStatus?
     
     @State var selectedInfoKind: InfoKind = .peerInfo
@@ -68,9 +69,16 @@ struct StatusView<Manager: NetworkExtensionManagerProtocol>: View {
             }
         }
         .onChange(of: statusRefreshInterval) { _ in
-            guard scenePhase == .active else { return }
+            guard timerSubscription != nil else { return }
             stopTimer()
             startTimer()
+        }
+        .onReceive(timer) { _ in
+            if [.inactive, .background].contains(scenePhase) {
+                stopTimer()
+                return
+            }
+            refreshStatus()
         }
         .sheet(item: $selectedPeerRoute) { selection in
             PeerConnDetailSheet(status: $status, peerRouteID: selection.id)
@@ -251,11 +259,8 @@ struct StatusView<Manager: NetworkExtensionManagerProtocol>: View {
     func startTimer() {
         guard timerSubscription == nil else { return }
         let interval = max(0.2, statusRefreshInterval)
-        timerSubscription = Timer.publish(every: interval, on: .main, in: .common)
-            .autoconnect()
-            .sink { _ in
-            refreshStatus()
-        }
+        timer = Timer.publish(every: interval, on: .main, in: .common)
+        timerSubscription = timer.connect()
     }
 
     private func stopTimer() {
@@ -640,18 +645,6 @@ struct StatusBadge: View {
     }
 }
 
-struct StatusView_Previews: PreviewProvider {
-    static var previews: some View {
-        @StateObject var manager = MockNEManager()
-        StatusView("Example", manager: manager)
-            .environmentObject(manager)
-        
-        StatusView("Example", manager: manager)
-            .environmentObject(manager)
-            .previewInterfaceOrientation(.landscapeLeft)
-    }
-}
-
 extension View {
     func compatibleLabelSpacing(_ spacing: CGFloat) -> some View {
         if #available(iOS 26.0, *) {
@@ -661,3 +654,11 @@ extension View {
         }
     }
 }
+
+#if DEBUG
+#Preview("Status Portrait") {
+    let manager = MockNEManager()
+    StatusView("Example", manager: manager)
+        .environmentObject(manager)
+}
+#endif

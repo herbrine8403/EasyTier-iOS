@@ -2533,7 +2533,20 @@
       }
     },
     "no_ip_information_available" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No IP information available"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂无 IP 信息"
+          }
+        }
+      }
     },
     "no_network_profile_found" : {
       "localizations" : {
@@ -2626,7 +2639,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无可用对等节点信息"
+            "value" : "暂无对等节点信息"
           }
         }
       }
@@ -3351,22 +3364,6 @@
         }
       }
     },
-    "run_network" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Run"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "启动"
-          }
-        }
-      }
-    },
     "running" : {
       "localizations" : {
         "en" : {
@@ -3558,22 +3555,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "状态刷新间隔"
-          }
-        }
-      }
-    },
-    "stop_network" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stop"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "停止"
           }
         }
       }
@@ -4102,6 +4083,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "监听端口"
+          }
+        }
+      }
+    },
+    "widget_desc" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show and control EasyTier status."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示和控制 EasyTier 的状态。"
           }
         }
       }

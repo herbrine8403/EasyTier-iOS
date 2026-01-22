@@ -8,12 +8,16 @@ import EasyTierShared
 @main
 struct ControlWidgetsBundle: WidgetBundle {
     var body: some Widget {
-        ControlWidgetsControl()
+        if #available(iOS 18.0, *) {
+            EasyTierControlWidget()
+        }
+        EasyTierStatusWidget()
     }
 }
 
-struct ControlWidgetsControl: ControlWidget {
-    static let kind: String = "site.yinmo.easytier.controlwidgets"
+@available(iOS 18.0, *)
+struct EasyTierControlWidget: ControlWidget {
+    static let kind: String = "\(APP_BUNDLE_ID).control"
 
     var body: some ControlWidgetConfiguration {
         StaticControlConfiguration(
@@ -34,7 +38,8 @@ struct ControlWidgetsControl: ControlWidget {
     }
 }
 
-extension ControlWidgetsControl {
+@available(iOS 18.0, *)
+extension EasyTierControlWidget {
     struct VPNControlProvider: ControlValueProvider {
         var previewValue: Bool {
             false
