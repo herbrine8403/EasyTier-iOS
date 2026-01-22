@@ -56,19 +56,20 @@ struct DashboardView<Manager: NetworkExtensionManagerProtocol>: View {
 
     var mainView: some View {
         Group {
-            if let $profile = Binding($selectedProfile) {
-                if isConnected {
-                    StatusView($profile.wrappedValue.networkName, manager: manager)
-                } else {
-                    NetworkEditView(profile: Binding(
-                        get: { $profile.wrappedValue },
-                        set: { newValue in
-                            $profile.wrappedValue = newValue
-                            if selectedProfileName != nil {
-                                scheduleSave()
-                            }
+            if selectedProfile != nil {
+                let profile = Binding(
+                    get: { $selectedProfile.wrappedValue ?? NetworkProfile() },
+                    set: { newValue in
+                        $selectedProfile.wrappedValue = newValue
+                        if selectedProfileName != nil {
+                            scheduleSave()
                         }
-                    ))
+                    }
+                )
+                if isConnected {
+                    StatusView(profile.wrappedValue.networkName, manager: manager)
+                } else {
+                    NetworkEditView(profile: profile)
                         .disabled(isPending)
                 }
             } else {
