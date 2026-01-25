@@ -145,6 +145,10 @@ struct DashboardView<Manager: NetworkExtensionManagerProtocol>: View {
                         withAnimation {
                             for index in indexSet {
                                 do {
+                                    if selectedProfileName == profiles[index].id {
+                                        selectedProfileName = nil
+                                        selectedProfile = nil
+                                    }
                                     try ProfileStore.deleteProfile(named: profiles[index].id)
                                 } catch {
                                     dashboardLogger.error("delete profile failed: \(error)")
@@ -382,6 +386,8 @@ struct DashboardView<Manager: NetworkExtensionManagerProtocol>: View {
         } catch {
             dashboardLogger.error("load profile failed: \(error)")
             errorMessage = .init(error.localizedDescription)
+            selectedProfileName = nil
+            selectedProfile = nil
         }
     }
     
