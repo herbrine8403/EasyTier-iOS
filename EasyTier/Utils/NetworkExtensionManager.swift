@@ -182,6 +182,8 @@ class NetworkExtensionManager: NetworkExtensionManagerProtocol {
         }
         if let mtu = config.flags?.mtu {
             options.mtu = mtu
+        } else {
+            options.mtu = config.flags?.enableEncryption ?? true ? 1360 : 1380
         }
         if let routes = config.routes {
             options.routes = routes
