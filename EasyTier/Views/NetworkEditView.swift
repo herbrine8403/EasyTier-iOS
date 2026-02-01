@@ -232,9 +232,6 @@ struct NetworkEditView: View {
         }
         .navigationTitle("advanced_settings")
         .scrollDismissesKeyboard(.immediately)
-        .sheet(isPresented: $showProxyCIDREditor) {
-            proxyCIDREditor
-        }
     }
     
     var dnsSettings: some View {
@@ -323,6 +320,9 @@ struct NetworkEditView: View {
         }
         .navigationTitle("route_settings")
         .scrollDismissesKeyboard(.immediately)
+        .sheet(isPresented: $showProxyCIDREditor) {
+            proxyCIDREditor
+        }
     }
 
     var portForwardsSettings: some View {
@@ -378,25 +378,23 @@ struct NetworkEditView: View {
     
     var proxyCIDRsSettings: some View {
         Section("common_text.proxy_cidr") {
-            ListEditor(newItemTitle: "common_text.add_proxy_cidr", items: $profile.proxyCIDRs, addItemFactory: {
-                NetworkProfile.ProxyCIDR(cidr: "0.0.0.0", enableMapping: false, mappedCIDR: "0.0.0.0", length: "0")
-            }, rowContent: { proxyCIDR in
+            ListEditor(newItemTitle: "common_text.add_proxy_cidr", items: $profile.proxyCIDRs, addItemFactory: NetworkProfile.ProxyCIDR.init, rowContent: { proxyCIDR in
                 HStack(spacing: 12) {
                     if proxyCIDR.enableMapping.wrappedValue {
                         Text("map")
                             .foregroundStyle(.secondary)
                         Spacer()
-                        Text("\(proxyCIDR.cidr.wrappedValue)/\(proxyCIDR.length.wrappedValue)")
+                        Text(proxyCIDR.wrappedValue.cidrString)
                             .font(.body.monospaced())
                         Image(systemName: "arrow.right")
                             .foregroundStyle(.secondary)
-                        Text("\(proxyCIDR.mappedCIDR.wrappedValue)/\(proxyCIDR.length.wrappedValue)")
+                        Text(proxyCIDR.wrappedValue.mappedCIDRString)
                             .font(.body.monospaced())
                     } else {
                         Text("proxy")
                             .foregroundStyle(.secondary)
                         Spacer()
-                        Text("\(proxyCIDR.cidr.wrappedValue)/\(proxyCIDR.length.wrappedValue)")
+                        Text(proxyCIDR.wrappedValue.cidrString)
                             .font(.body.monospaced())
                     }
                 }

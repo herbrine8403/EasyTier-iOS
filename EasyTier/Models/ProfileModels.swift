@@ -55,6 +55,22 @@ struct NetworkProfile: Identifiable, Equatable {
         var enableMapping: Bool = false
         var mappedCIDR: String = ""
         var length: String = ""
+        
+        var cidrString: String {
+            if cidr.isEmpty && length.isEmpty {
+                ""
+            } else {
+                "\(cidr)/\(length)"
+            }
+        }
+        
+        var mappedCIDRString: String {
+            if mappedCIDR.isEmpty && length.isEmpty {
+                ""
+            } else {
+                "\(mappedCIDR)/\(length)"
+            }
+        }
     }
     
     var id: UUID

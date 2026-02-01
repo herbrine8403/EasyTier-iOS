@@ -232,8 +232,8 @@ struct NetworkConfig: Codable {
         if !profile.proxyCIDRs.isEmpty {
             self.proxyNetwork = profile.proxyCIDRs.map { cidr in
                 ProxyNetworkConfig(
-                    cidr: "\(cidr.cidr)/\(cidr.length)",
-                    mappedCIDR: cidr.enableMapping ? cidr.mappedCIDR : nil,
+                    cidr: cidr.cidrString,
+                    mappedCIDR: cidr.enableMapping ? cidr.mappedCIDRString : nil,
                 )
             }
         }
@@ -277,7 +277,6 @@ struct NetworkConfig: Codable {
         
         var tempFlags = Flags()
         
-//        tempFlags.devName = takeIfChanged(profile.devName, def.devName)
         tempFlags.mtu = profile.mtu
         tempFlags.latencyFirst = takeIfChanged(profile.latencyFirst, def.latencyFirst)
         tempFlags.enableExitNode = takeIfChanged(profile.enableExitNode, def.enableExitNode)
@@ -404,7 +403,7 @@ struct NetworkConfig: Codable {
                 var entry = NetworkProfile.ProxyCIDR(
                     cidr: parsed.ip,
                     enableMapping: false,
-                    mappedCIDR: "0.0.0.0",
+                    mappedCIDR: "",
                     length: parsed.length
                 )
                 if let mappedCIDR = item.mappedCIDR, !mappedCIDR.isEmpty {
