@@ -69,7 +69,7 @@ struct NetworkProfile: Identifiable, Equatable {
     var vpnPortalListenPort: Int = 22022
     var vpnPortalClientCIDR: CIDR = CIDR(ip: "10.126.126.0", length: "24")
 
-    var listenerURLs: [TextItem] = ["tcp://0.0.0.0:11010", "udp://0.0.0.0:11010", "wg://0.0.0.0:11011"]
+    var listenerURLs: [TextItem] = []
     var latencyFirst: Bool = false
 
     var useSmoltcp: Bool = false
@@ -89,6 +89,7 @@ struct NetworkProfile: Identifiable, Equatable {
     var disableEncryption: Bool = false
     var disableUDPHolePunching: Bool = false
     var disableSymHolePunching: Bool = false
+    var enableDataCompression: Bool = false
 
     var enableRelayNetworkWhitelist: Bool = false
     var relayNetworkWhitelist: [TextItem] = []
@@ -213,5 +214,10 @@ struct NetworkProfile: Identifiable, Equatable {
             label: "enable_private_mode",
             help: "enable_private_mode_help"
         ),
+        .init(
+            keyPath: \.enableDataCompression,
+            label: "enable_data_compression",
+            help: "enable_data_compression_help"
+        ),  
     ]
 }

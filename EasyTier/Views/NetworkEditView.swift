@@ -11,6 +11,7 @@ struct NetworkEditView: View {
         var id: Self { self }
         case advanced
         case dns
+        case route
         case portForwards
     }
     
@@ -23,6 +24,7 @@ struct NetworkEditView: View {
             basicSettings
             NavigationLink("advanced_settings", value: EditPane.advanced)
             NavigationLink("dns_settings", value: EditPane.dns)
+            NavigationLink("route_settings", value: EditPane.route)
             NavigationLink("port_forwards", value: EditPane.portForwards)
         }
         .scrollDismissesKeyboard(.immediately)
@@ -35,6 +37,8 @@ struct NetworkEditView: View {
                 advancedSettings
             case .dns:
                 dnsSettings
+            case .route:
+                routeSettings
             case .portForwards:
                 portForwardsSettings
             case nil:
@@ -115,7 +119,7 @@ struct NetworkEditView: View {
 
     var advancedSettings: some View {
         Form {
-            Section("general") {
+            Section {
 //                LabeledContent("Device Name") {
 //                    TextField("Default", text: $profile.devName)
 //                        .multilineTextAlignment(.trailing)
@@ -138,9 +142,11 @@ struct NetworkEditView: View {
                     .multilineTextAlignment(.trailing)
                     .keyboardType(.numberPad)
                 }
+            } header: {
+                Text("general")
+            } footer: {
+                Text("mtu_help")
             }
-            
-            proxyCIDRsSettings
             
             Section("vpn_portal_config") {
                 Toggle(
@@ -184,24 +190,6 @@ struct NetworkEditView: View {
                 Text("relay_network_whitelist_help")
             }
             
-            Section {
-                Toggle("common_text.enable", isOn: $profile.enableManualRoutes)
-                if profile.enableManualRoutes {
-                    ListEditor(newItemTitle: "common_text.add_route", items: $profile.routes, addItemFactory: NetworkProfile.CIDR.init, rowContent: { cidr in
-                        HStack {
-                            Text("cidr")
-                                .foregroundStyle(.secondary)
-                            Spacer()
-                            IPv4Field(ip: cidr.ip, length: cidr.length)
-                        }
-                    })
-                }
-            } header: {
-                Text("manual_routes")
-            } footer: {
-                Text("manual_routes_help")
-            }
-            
             Section("socks5") {
                 Toggle(
                     "common_text.enable",
@@ -218,21 +206,6 @@ struct NetworkEditView: View {
                         .keyboardType(.numberPad)
                     }
                 }
-            }
-            
-            Section {
-                ListEditor(newItemTitle: "common_text.add_exit_node", items: $profile.exitNodes, addItemFactory: { "" }, rowContent: { ip in
-                    HStack {
-                        Text("address")
-                            .foregroundStyle(.secondary)
-                        Spacer()
-                        IPv4Field(ip: ip.text)
-                    }
-                })
-            } header: {
-                Text("exit_nodes")
-            } footer: {
-                Text("exit_nodes_help")
             }
             
             Section {
@@ -310,6 +283,45 @@ struct NetworkEditView: View {
                 Text("override_dns")
             } footer: {
                 Text("override_dns_help")
+            }
+        }
+    }
+    
+    var routeSettings: some View {
+        Form {
+            proxyCIDRsSettings
+            
+            Section {
+                Toggle("common_text.enable", isOn: $profile.enableManualRoutes)
+                if profile.enableManualRoutes {
+                    ListEditor(newItemTitle: "common_text.add_route", items: $profile.routes, addItemFactory: NetworkProfile.CIDR.init, rowContent: { cidr in
+                        HStack {
+                            Text("cidr")
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            IPv4Field(ip: cidr.ip, length: cidr.length)
+                        }
+                    })
+                }
+            } header: {
+                Text("manual_routes")
+            } footer: {
+                Text("manual_routes_help")
+            }
+            
+            Section {
+                ListEditor(newItemTitle: "common_text.add_exit_node", items: $profile.exitNodes, addItemFactory: { "" }, rowContent: { ip in
+                    HStack {
+                        Text("address")
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        IPv4Field(ip: ip.text)
+                    }
+                })
+            } header: {
+                Text("exit_nodes")
+            } footer: {
+                Text("exit_nodes_help")
             }
         }
     }

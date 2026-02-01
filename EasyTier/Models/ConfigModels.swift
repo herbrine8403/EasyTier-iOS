@@ -312,6 +312,10 @@ struct NetworkConfig: Codable {
                 .compactMap { $0.text.isEmpty ? nil : $0.text }.joined(separator: " ")
         }
         
+        if profile.enableDataCompression {
+            tempFlags.dataCompressAlgo = 2
+        }
+        
         self.flags = tempFlags
     }
 }
@@ -542,6 +546,9 @@ extension NetworkConfig {
             }
             if let privateMode = flags.privateMode {
                 profile.enablePrivateMode = privateMode
+            }
+            if let dataCompressAlgo = flags.dataCompressAlgo {
+                profile.enableDataCompression = dataCompressAlgo == 2
             }
         }
     }
