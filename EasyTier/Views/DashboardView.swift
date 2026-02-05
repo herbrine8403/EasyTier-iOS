@@ -275,7 +275,7 @@ struct DashboardView<Manager: NetworkExtensionManagerProtocol>: View {
                         .labelStyle(.titleAndIcon)
                         .padding(10)
                     }
-                    .disabled(selectedProfileName == nil || manager.isLoading || isPending)
+                    .disabled((selectedProfileName == nil && !isConnected) || manager.isLoading || isPending)
                     .buttonStyle(.plain)
                     .foregroundStyle(isConnected ? Color.red : Color.accentColor)
                     .animation(.interactiveSpring, value: [isConnected, isPending])
