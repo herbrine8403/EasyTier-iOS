@@ -10,11 +10,7 @@ struct BoolFlag: Identifiable {
 
 let defaultServerURL: String = "tcp://public.easytier.top:11010"
 
-struct NetworkProfile: Identifiable, Equatable {
-    static func == (lhs: NetworkProfile, rhs: NetworkProfile) -> Bool {
-        lhs.id == rhs.id
-    }
-    
+struct NetworkProfile: Identifiable, Equatable {    
     enum NetworkingMethod: Int, Codable, CaseIterable, Identifiable {
         var id: Self { self }
         case defaultServer = 0
@@ -138,7 +134,7 @@ struct NetworkProfile: Identifiable, Equatable {
     var enableOverrideDNS: Bool = false
     var overrideDNS: [TextItem] = []
     
-    var baseConfig: NetworkConfig?
+    var baseConfig: AlwaysEqual<NetworkConfig?> = .init(nil)
 
     init(id: UUID = UUID()) {
         self.id = id
@@ -147,7 +143,7 @@ struct NetworkProfile: Identifiable, Equatable {
     init(from config: NetworkConfig) {
         let id = UUID(uuidString: config.instanceId) ?? UUID()
         var profile = NetworkProfile(id: id)
-        profile.baseConfig = config
+        profile.baseConfig = .init(config)
         
         if let hostname = config.hostname, !hostname.isEmpty {
             profile.hostname = hostname
@@ -334,7 +330,7 @@ struct NetworkProfile: Identifiable, Equatable {
     }
     
     func toConfig() -> NetworkConfig {
-        var config = self.baseConfig ?? .init(id: id, name: networkName)
+        var config = self.baseConfig.value ?? .init(id: id, name: networkName)
         config.apply(from: self)
         return config
     }
@@ -441,4 +437,16 @@ struct NetworkProfile: Identifiable, Equatable {
             help: "enable_data_compression_help"
         ),  
     ]
+}
+
+struct AlwaysEqual<T>: Equatable {
+    var value: T
+    
+    static func == (lhs: AlwaysEqual<T>, rhs: AlwaysEqual<T>) -> Bool {
+        true
+    }
+    
+    init(_ value: T) {
+        self.value = value
+    }
 }
