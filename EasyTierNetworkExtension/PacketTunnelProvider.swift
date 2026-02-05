@@ -120,7 +120,6 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         self.needReapplySettings = false
         let settings = buildSettings(options)
         let newSnapshot = snapshotSettings(settings)
-        let needSetTunFd = shouldUpdateTunFd(old: lastAppliedSettings, new: newSnapshot)
         let wrappedCompletion: (Error?) -> Void = { error in
             DispatchQueue.main.sync {
                 if error == nil {
@@ -134,6 +133,12 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 }
             }
         }
+        if newSnapshot == lastAppliedSettings {
+            logger.warning("applyNetworkSettings() new settings are excatly the same as last applied, skipping")
+            wrappedCompletion(nil)
+            return
+        }
+        let needSetTunFd = shouldUpdateTunFd(old: lastAppliedSettings, new: newSnapshot)
         logger.info("applyNetworkSettings() need set tunfd: \(needSetTunFd), settings: \(settings, privacy: .public)")
         self.setTunnelNetworkSettings(settings) { [weak self] error in
             guard let self else {

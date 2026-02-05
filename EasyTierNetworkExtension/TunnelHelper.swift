@@ -17,7 +17,7 @@ extension PacketTunnelProvider {
         let ipv6 = settings.ipv6Settings.map { ipv6 in
             TunnelNetworkSettingsSnapshot.IPv6(
                 addresses: ipv6.addresses,
-                networkPrefixLengths: ipv6.networkPrefixLengths.map { UInt32($0.intValue) },
+                networkPrefixLengths: ipv6.networkPrefixLengths.map { $0.intValue },
                 includedRoutes: mapIPv6Routes(ipv6.includedRoutes),
                 excludedRoutes: mapIPv6Routes(ipv6.excludedRoutes)
             )
@@ -40,34 +40,26 @@ extension PacketTunnelProvider {
     func shouldUpdateTunFd(old: TunnelNetworkSettingsSnapshot?, new: TunnelNetworkSettingsSnapshot) -> Bool {
         guard hasIPAddresses(new) else { return false }
         guard let old else { return true }
-        let oldV4 = old.ipv4?.addresses.first
-        let oldV4Subnet = old.ipv4?.subnetMasks.first
-        let oldV6 = old.ipv6?.addresses.first
-        let oldV6PrefixLength = old.ipv6?.networkPrefixLengths.first
-        let newV4 = new.ipv4?.addresses.first
-        let newV4Subnet = new.ipv4?.subnetMasks.first
-        let newV6 = new.ipv6?.addresses.first
-        let newV6PrefixLength = new.ipv6?.networkPrefixLengths.first
-        return oldV4 != newV4 || oldV4Subnet != newV4Subnet || oldV6 != newV6 || oldV6PrefixLength != newV6PrefixLength
+        return old.ipv4?.subnets != new.ipv4?.subnets || old.ipv6?.subnets != new.ipv6?.subnets
     }
 
     private func hasIPAddresses(_ settings: TunnelNetworkSettingsSnapshot) -> Bool {
-        let v4 = settings.ipv4?.addresses.first?.isEmpty == false
-        let v6 = settings.ipv6?.addresses.first?.isEmpty == false
+        let v4 = settings.ipv4?.subnets.first?.address.isEmpty == false
+        let v6 = settings.ipv6?.subnets.first?.address.isEmpty == false
         return v4 || v6
     }
 
-    private func mapIPv4Routes(_ routes: [NEIPv4Route]?) -> [TunnelNetworkSettingsSnapshot.IPv4Route]? {
+    private func mapIPv4Routes(_ routes: [NEIPv4Route]?) -> [TunnelNetworkSettingsSnapshot.IPv4Subnet]? {
         guard let routes, !routes.isEmpty else { return nil }
         return routes.map {
-            .init(destination: $0.destinationAddress, subnetMask: $0.destinationSubnetMask)
+            .init(address: $0.destinationAddress, subnetMask: $0.destinationSubnetMask)
         }
     }
 
-    private func mapIPv6Routes(_ routes: [NEIPv6Route]?) -> [TunnelNetworkSettingsSnapshot.IPv6Route]? {
+    private func mapIPv6Routes(_ routes: [NEIPv6Route]?) -> [TunnelNetworkSettingsSnapshot.IPv6Subnet]? {
         guard let routes, !routes.isEmpty else { return nil }
         return routes.map {
-            .init(destination: $0.destinationAddress, networkPrefixLength: UInt32($0.destinationNetworkPrefixLength.intValue))
+            .init(address: $0.destinationAddress, networkPrefixLength: $0.destinationNetworkPrefixLength.intValue)
         }
     }
 }

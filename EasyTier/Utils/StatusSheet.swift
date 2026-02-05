@@ -11,7 +11,7 @@ struct NetworkSettingsSheet: View {
                 if let settings {
                     if let ipv4 = settings.ipv4 {
                         Section("ipv4") {
-                            labeledLines("address", values: formatIPv4Addresses(ipv4.addresses, subnetMasks: ipv4.subnetMasks))
+                            labeledLines("address", values: formatIPv4Addresses(Array(ipv4.subnets)))
                         }
                         if let routes = ipv4.includedRoutes, !routes.isEmpty {
                             Section("ipv4_routes_included") {
@@ -31,19 +31,19 @@ struct NetworkSettingsSheet: View {
 
                     if let ipv6 = settings.ipv6 {
                         Section("ipv6") {
-                            labeledLines("address", values: formatIPv6Addresses(ipv6.addresses, prefixLengths: ipv6.networkPrefixLengths))
+                            labeledLines("address", values: formatIPv6Addresses(Array(ipv6.subnets)))
                         }
                         if let routes = ipv6.includedRoutes, !routes.isEmpty {
                             Section("ipv6_routes_included") {
                                 ForEach(Array(routes.enumerated()), id: \.offset) { _, route in
-                                    Text("\(route.destination)/\(route.networkPrefixLength)")
+                                    Text("\(route.address)/\(route.networkPrefixLength)")
                                 }
                             }
                         }
                         if let routes = ipv6.excludedRoutes, !routes.isEmpty {
                             Section("ipv6_routes_excluded") {
                                 ForEach(Array(routes.enumerated()), id: \.offset) { _, route in
-                                    Text("\(route.destination)/\(route.networkPrefixLength)")
+                                    Text("\(route.address)/\(route.networkPrefixLength)")
                                 }
                             }
                         }
@@ -51,12 +51,12 @@ struct NetworkSettingsSheet: View {
 
                     if let dns = settings.dns {
                         Section("dns") {
-                            labeledLines("server", values: dns.servers)
+                            labeledLines("server", values: Array(dns.servers))
                             if let search = dns.searchDomains, !search.isEmpty {
-                                labeledLines("search_domains", values: search)
+                                labeledLines("search_domains", values: Array(search))
                             }
                             if let match = dns.matchDomains, !match.isEmpty {
-                                labeledLines("match_domains", values: formatMatchDomains(match))
+                                labeledLines("match_domains", values: formatMatchDomains(Array(match)))
                             }
                         }
                     }
@@ -85,38 +85,21 @@ struct NetworkSettingsSheet: View {
         }
     }
 
-    private func formatIPv4Addresses(_ addresses: [String], subnetMasks: [String]) -> [String] {
-        let count = min(addresses.count, subnetMasks.count)
-        guard count > 0 else { return addresses }
+    private func formatIPv4Addresses(_ subnets: [TunnelNetworkSettingsSnapshot.IPv4Subnet]) -> [String] {
         var results: [String] = []
-        results.reserveCapacity(count)
-        for index in 0..<count {
-            let address = addresses[index]
-            let mask = subnetMasks[index]
-            if let prefix = ipv4PrefixLength(from: mask) {
-                results.append("\(address)/\(prefix)")
+        results.reserveCapacity(subnets.count)
+        for subnet in subnets {
+            if let prefix = ipv4PrefixLength(from: subnet.subnetMask) {
+                results.append("\(subnet.address)/\(prefix)")
             } else {
-                results.append(address)
+                results.append(subnet.address)
             }
-        }
-        if addresses.count > count {
-            results.append(contentsOf: addresses[count...])
         }
         return results
     }
 
-    private func formatIPv6Addresses(_ addresses: [String], prefixLengths: [UInt32]) -> [String] {
-        let count = min(addresses.count, prefixLengths.count)
-        guard count > 0 else { return addresses }
-        var results: [String] = []
-        results.reserveCapacity(count)
-        for index in 0..<count {
-            results.append("\(addresses[index])/\(prefixLengths[index])")
-        }
-        if addresses.count > count {
-            results.append(contentsOf: addresses[count...])
-        }
-        return results
+    private func formatIPv6Addresses(_ subnets: [TunnelNetworkSettingsSnapshot.IPv6Subnet]) -> [String] {
+        return subnets.map { "\($0.address)/\($0.networkPrefixLength)" }
     }
 
     private func formatMatchDomains(_ domains: [String]) -> [String] {
@@ -125,11 +108,11 @@ struct NetworkSettingsSheet: View {
         }
     }
 
-    private func formatIPv4Route(_ route: TunnelNetworkSettingsSnapshot.IPv4Route) -> String {
+    private func formatIPv4Route(_ route: TunnelNetworkSettingsSnapshot.IPv4Subnet) -> String {
         if let prefix = ipv4PrefixLength(from: route.subnetMask) {
-            return "\(route.destination)/\(prefix)"
+            return "\(route.address)/\(prefix)"
         }
-        return "\(route.destination)/\(route.subnetMask)"
+        return "\(route.address)/\(route.subnetMask)"
     }
 
     private func ipv4PrefixLength(from mask: String) -> Int? {

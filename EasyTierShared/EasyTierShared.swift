@@ -23,78 +23,103 @@ public struct EasyTierOptions: Codable {
     public var logLevel: LogLevel = .info
     public var magicDNS: Bool = false
     public var dns: [String] = []
-    
+
     public init() {}
 }
 
-public struct TunnelNetworkSettingsSnapshot: Codable {
-    public struct IPv4Route: Codable {
-        public var destination: String
+public struct TunnelNetworkSettingsSnapshot: Codable, Equatable {
+    public struct IPv4Subnet: Codable, Hashable {
+        public var address: String
         public var subnetMask: String
 
-        public init(destination: String, subnetMask: String) {
-            self.destination = destination
+        public init(address: String, subnetMask: String) {
+            self.address = address
             self.subnetMask = subnetMask
         }
     }
 
-    public struct IPv6Route: Codable {
-        public var destination: String
-        public var networkPrefixLength: UInt32
+    public struct IPv6Subnet: Codable, Hashable {
+        public var address: String
+        public var networkPrefixLength: Int
 
-        public init(destination: String, networkPrefixLength: UInt32) {
-            self.destination = destination
+        public init(address: String, networkPrefixLength: Int) {
+            self.address = address
             self.networkPrefixLength = networkPrefixLength
         }
     }
 
-    public struct IPv4: Codable {
-        public var addresses: [String]
-        public var subnetMasks: [String]
-        public var includedRoutes: [IPv4Route]?
-        public var excludedRoutes: [IPv4Route]?
+    public struct IPv4: Codable, Equatable {
+        public var subnets: Set<IPv4Subnet>
+        public var includedRoutes: Set<IPv4Subnet>?
+        public var excludedRoutes: Set<IPv4Subnet>?
 
         public init(
             addresses: [String],
             subnetMasks: [String],
-            includedRoutes: [IPv4Route]? = nil,
-            excludedRoutes: [IPv4Route]? = nil
+            includedRoutes: [IPv4Subnet]? = nil,
+            excludedRoutes: [IPv4Subnet]? = nil
         ) {
-            self.addresses = addresses
-            self.subnetMasks = subnetMasks
-            self.includedRoutes = includedRoutes
-            self.excludedRoutes = excludedRoutes
+            subnets = .init()
+            for (index, address) in addresses.enumerated() {
+                subnets.insert(
+                    IPv4Subnet(address: address, subnetMask: subnetMasks[index])
+                )
+            }
+            if let includedRoutes, !includedRoutes.isEmpty {
+                self.includedRoutes = Set(includedRoutes)
+            }
+            if let excludedRoutes, !excludedRoutes.isEmpty {
+                self.excludedRoutes = Set(excludedRoutes)
+            }
         }
     }
 
-    public struct IPv6: Codable {
-        public var addresses: [String]
-        public var networkPrefixLengths: [UInt32]
-        public var includedRoutes: [IPv6Route]?
-        public var excludedRoutes: [IPv6Route]?
+    public struct IPv6: Codable, Equatable {
+        public var subnets: Set<IPv6Subnet>
+        public var includedRoutes: Set<IPv6Subnet>?
+        public var excludedRoutes: Set<IPv6Subnet>?
 
         public init(
             addresses: [String],
-            networkPrefixLengths: [UInt32],
-            includedRoutes: [IPv6Route]? = nil,
-            excludedRoutes: [IPv6Route]? = nil
+            networkPrefixLengths: [Int],
+            includedRoutes: [IPv6Subnet]? = nil,
+            excludedRoutes: [IPv6Subnet]? = nil
         ) {
-            self.addresses = addresses
-            self.networkPrefixLengths = networkPrefixLengths
-            self.includedRoutes = includedRoutes
-            self.excludedRoutes = excludedRoutes
+            subnets = .init()
+            for (index, address) in addresses.enumerated() {
+                subnets.insert(
+                    IPv6Subnet(
+                        address: address,
+                        networkPrefixLength: networkPrefixLengths[index]
+                    )
+                )
+            }
+            if let includedRoutes {
+                self.includedRoutes = Set(includedRoutes)
+            }
+            if let excludedRoutes {
+                self.excludedRoutes = Set(excludedRoutes)
+            }
         }
     }
 
-    public struct DNS: Codable {
-        public var servers: [String]
-        public var searchDomains: [String]?
-        public var matchDomains: [String]?
+    public struct DNS: Codable, Equatable {
+        public var servers: Set<String>
+        public var searchDomains: Set<String>?
+        public var matchDomains: Set<String>?
 
-        public init(servers: [String], searchDomains: [String]? = nil, matchDomains: [String]? = nil) {
-            self.servers = servers
-            self.searchDomains = searchDomains
-            self.matchDomains = matchDomains
+        public init(
+            servers: [String],
+            searchDomains: [String]? = nil,
+            matchDomains: [String]? = nil
+        ) {
+            self.servers = Set(servers)
+            if let searchDomains {
+                self.searchDomains = Set(searchDomains)
+            }
+            if let matchDomains {
+                self.matchDomains = Set(matchDomains)
+            }
         }
     }
 
