@@ -1,6 +1,6 @@
 import Foundation
 
-struct NetworkConfig: Codable {
+nonisolated struct NetworkConfig: Codable {
     struct Flags: Codable, Equatable {
         var defaultProtocol: String?
         var devName: String?

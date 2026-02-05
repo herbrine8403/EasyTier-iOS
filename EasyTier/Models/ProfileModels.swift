@@ -8,9 +8,9 @@ struct BoolFlag: Identifiable {
     let help: LocalizedStringKey?
 }
 
-let defaultServerURL: String = "tcp://public.easytier.top:11010"
+nonisolated let defaultServerURL: String = "tcp://public.easytier.top:11010"
 
-struct NetworkProfile: Identifiable, Equatable {    
+nonisolated struct NetworkProfile: Identifiable, Equatable {
     enum NetworkingMethod: Int, Codable, CaseIterable, Identifiable {
         var id: Self { self }
         case defaultServer = 0
@@ -26,7 +26,7 @@ struct NetworkProfile: Identifiable, Equatable {
         }
     }
 
-    nonisolated struct PortForwardSetting: Codable, Hashable, Identifiable {
+    struct PortForwardSetting: Codable, Hashable, Identifiable {
         var id = UUID()
         var bindAddr: String = ""
         var bindPort: Int = 0
@@ -35,7 +35,7 @@ struct NetworkProfile: Identifiable, Equatable {
         var proto: String = "tcp"
     }
 
-    nonisolated struct CIDR: Codable, Hashable, Identifiable {
+    struct CIDR: Codable, Hashable, Identifiable {
         var id = UUID()
         var ip: String = ""
         var length: String = ""
@@ -49,7 +49,7 @@ struct NetworkProfile: Identifiable, Equatable {
         }
     }
 
-    nonisolated struct ProxyCIDR: Codable, Hashable, Identifiable {
+    struct ProxyCIDR: Codable, Hashable, Identifiable {
         var id = UUID()
         var cidr: String = ""
         var enableMapping: Bool = false
@@ -439,7 +439,7 @@ struct NetworkProfile: Identifiable, Equatable {
     ]
 }
 
-struct AlwaysEqual<T>: Equatable {
+nonisolated struct AlwaysEqual<T>: Equatable {
     var value: T
     
     static func == (lhs: AlwaysEqual<T>, rhs: AlwaysEqual<T>) -> Bool {
