@@ -60,19 +60,10 @@ struct DashboardView<Manager: NetworkExtensionManagerProtocol>: View {
     var mainView: some View {
         Group {
             if selectedSession.session != nil {
-                let profile = Binding(
-                    get: { selectedSession.session?.document.profile ?? NetworkProfile() },
-                    set: { newValue in
-                        guard selectedSession.session?.document.profile != newValue else { return }
-                        selectedSession.session?.document.profile = newValue
-                        selectedSession.session?.document.markDirty()
-                        selectedSession.objectWillChange.send()
-                    }
-                )
                 if isConnected {
-                    StatusView(profile.wrappedValue.networkName, manager: manager)
+                    StatusView(currentProfile.networkName, manager: manager)
                 } else {
-                    NetworkEditView(profile: profile)
+                    NetworkEditView(profile: $currentProfile)
                         .disabled(isPending)
                 }
             } else {
@@ -259,9 +250,9 @@ struct DashboardView<Manager: NetworkExtensionManagerProtocol>: View {
                         Task { @MainActor in
                             if isConnected {
                                 await manager.disconnect()
-                            } else if let session = selectedSession.session {
+                            } else {
                                 do {
-                                    let options = try NetworkExtensionManager.generateOptions(session.document.profile)
+                                    let options = try NetworkExtensionManager.generateOptions(currentProfile)
                                     NetworkExtensionManager.saveOptions(options)
                                     try await manager.connect()
                                 } catch {
@@ -293,7 +284,7 @@ struct DashboardView<Manager: NetworkExtensionManagerProtocol>: View {
                    let lastSelected {
                     await loadProfile(lastSelected)
                     if let session = selectedSession.session,
-                       let options = try? NetworkExtensionManager.generateOptions(session.document.profile) {
+                       let options = try? NetworkExtensionManager.generateOptions(currentProfile) {
                         NetworkExtensionManager.saveOptions(options)
                     }
                 }
@@ -322,6 +313,9 @@ struct DashboardView<Manager: NetworkExtensionManagerProtocol>: View {
         }
         .onChange(of: selectedSession.session) { session in
             lastSelected = session?.name
+        }
+        .onChange(of: currentProfile) { profile in
+            selectedSession.session?.document.profile = profile
         }
         .onDisappear {
             // Release observer to remove registration
@@ -410,6 +404,7 @@ struct DashboardView<Manager: NetworkExtensionManagerProtocol>: View {
         do {
             let session = try await ProfileStore.openSession(named: named)
             selectedSession.session = session
+            currentProfile = session.document.profile
         } catch {
             dashboardLogger.error("load profile failed: \(error)")
             if let conflict = error as? ProfileStoreError,
