@@ -283,8 +283,7 @@ struct DashboardView<Manager: NetworkExtensionManagerProtocol>: View {
                 if selectedSession.session == nil,
                    let lastSelected {
                     await loadProfile(lastSelected)
-                    if let session = selectedSession.session,
-                       let options = try? NetworkExtensionManager.generateOptions(currentProfile) {
+                    if let options = try? NetworkExtensionManager.generateOptions(currentProfile) {
                         NetworkExtensionManager.saveOptions(options)
                     }
                 }
